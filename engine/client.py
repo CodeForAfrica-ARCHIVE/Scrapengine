@@ -1,7 +1,8 @@
 """
 load and execute scrapers
 """
-
+import csv
+import time
 from Scrapengine.scrapers import rss
 
 def execute_rss(single=True):
@@ -13,7 +14,9 @@ def execute_rss(single=True):
     for source in rss.SOURCES['_all'].values():
         parsed = rss.get_source(source)
         entries = rss.get_entries(parsed)
-        print "RSS Scraper: %s entries from %s" % (len(entries), source)
+        outputfile = rss.output(entries, destination='csv', source='engine')
+        print "Output %s" % outputfile
+
         if single:
             break
 
