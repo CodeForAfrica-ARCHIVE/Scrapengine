@@ -4,6 +4,7 @@ scrapengine/scrapers/rss.py tests
 import unittest
 import requests
 import feedparser
+from Scrapengine.scrapers import rss as rss_scraper
 
 class RssScraperTestCase(unittest.TestCase):
     
@@ -17,7 +18,7 @@ class RssScraperTestCase(unittest.TestCase):
             self.rss_source, str(httpresp.status_code)))
         del httpresp
 
-        parsed = feedparser.parse(self.rss_source)
+        parsed = rss_scraper.get_source(self.rss_source)
         self.assertIsInstance(parsed, feedparser.FeedParserDict, msg="Unexpected object type %s for %s" %
                 (type(parsed), parsed))
         self.parsed_response = parsed
