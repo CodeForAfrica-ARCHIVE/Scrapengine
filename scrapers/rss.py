@@ -25,11 +25,12 @@ def get_entries(parsed_response):
 
 
 def output(entries, destination='csv', source=''):
-    for entry in entries:
-        outputfile = "%s/%s-rss-output-%s.csv" % (ARCHIVE, source, time.time())
-        with open(outputfile, 'wb') as csvfile:
-            outputwriter = csv.writer(csvfile, delimiter=',')
-            outputwriter.writerow([entry])
-        csvfile.close()
+    outputfile = "%s/%s-rss-output-%s.csv" % (ARCHIVE, source, time.time())
+    with open(outputfile, 'wa') as csvfile:
+        outputwriter = csv.writer(csvfile, delimiter=',')
+        for entry in entries:
+            outputwriter.writerow(["{id}|{published}|{title}|{summary}|{link}".format(**entry)])
+            print "writiten %s" % entry.keys()
+    csvfile.close()
     return outputfile
         
