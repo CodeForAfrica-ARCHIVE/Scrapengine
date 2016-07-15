@@ -11,10 +11,10 @@ def execute_rss(single=True):
                set False to scrape all pre-configured sources
     '''
     print "RSS Scrapers: %d sources" % rss.SOURCES['count']
-    for source in rss.SOURCES['_all'].values():
-        parsed = rss.get_source(source)
+    for source in rss.SOURCES['_all']:
+        parsed = rss.get_source(rss.SOURCES['_all'][source])
         entries = rss.get_entries(parsed)
-        outputfile = rss.output(entries, destination='csv', source='engine')
+        outputfile = rss.output(entries, destination='csv', source=source)
         print "Output %s" % outputfile
 
         if single:
@@ -23,5 +23,5 @@ def execute_rss(single=True):
 
 
 if __name__ == "__main__":
-    execute_rss()
+    execute_rss(single=False)
     #execute_other()
