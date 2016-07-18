@@ -18,7 +18,8 @@ class ArticleScraperTestCase(unittest.TestCase):
 
 
     def test_get_source(self,):
-        self.assertEqual(self.article_html.status_code, 200)
+        self.assertEqual(self.article_html[1], 200)
+        self.assertTrue(str(self.article_html[0]).endswith("html>") )
 
 
     def test_get_links(self,):
