@@ -59,10 +59,10 @@ class RssScraperTestCase(unittest.TestCase):
 
         generated = False
         for _file in os.listdir(ARCHIVE):
-            if _file.endswith('csv') and _file.startswith('tests'):
+            if _file.endswith('csv') and _file.startswith('rss-tests'):
                 # file generated. break
                 generated = True
-                os.remove(_file)
+                os.remove("%s/%s" % (ARCHIVE, _file))
         self.assertTrue(generated, msg="Output not generated")
 
 
