@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'CfAfrica-Scrapengine'
-copyright = u'2016, andrew kamau'
+copyright = u'2016, Code For Africa'
 author = u'andrew kamau'
 
 # The version info for the project you're documenting, acts as replacement for

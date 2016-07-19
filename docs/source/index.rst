@@ -3,20 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CfAfrica-Scrapengine's documentation!
-================================================
+CfAfrica: Scrapengine
+=====================
+
+`Scrapengine` loads, executes, and manages web scrapers.
+
+
+.. image:: scrapengine.png
+
 
 Contents:
+========
 
 .. toctree::
    :maxdepth: 2
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   scrapers
+   usage
+   api
