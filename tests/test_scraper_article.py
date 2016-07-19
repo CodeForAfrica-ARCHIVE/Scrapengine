@@ -26,6 +26,11 @@ class ArticleScraperTestCase(unittest.TestCase):
         links = article_scraper.get_links(self.article_html)
         self.assertIsInstance(links, list)
 
+    def test_filter(self,):
+        links = article_scraper.get_links(self.article_html)
+        clean = article_scraper._filter(links)
+        self.assertIsInstance(clean, dict)
+
     def test_output(self,):
         self.skipTest("will come back to this")
         
