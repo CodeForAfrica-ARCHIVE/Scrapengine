@@ -8,6 +8,7 @@ from Scrapengine.configs import SCRAPERS, ARCHIVE
 
 SOURCES = dict(count=len(SCRAPERS['rss']), _all=SCRAPERS['rss'])
 
+
 def get_source(source):
     '''
     gets and parses rss feed from `source`
@@ -39,7 +40,7 @@ def output(entries, destination='csv', source=''):
             print "writiten %s" % entry.get('id')
     csvfile.close()
     return outputfile
-        
+
 
 def _encode(_unicode):
     return _unicode.encode('utf-8')

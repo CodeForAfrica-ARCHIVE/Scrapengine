@@ -7,6 +7,7 @@ import time
 from Scrapengine.scrapers import rss, article
 from Scrapengine.configs import SCRAPERS
 
+
 def execute_rss(single=True):
     '''
     `single` - set True to scrape only one source. Leave it out or
@@ -21,6 +22,7 @@ def execute_rss(single=True):
 
         if single:
             break
+
 
 def execute_article():
     sources = SCRAPERS['article']

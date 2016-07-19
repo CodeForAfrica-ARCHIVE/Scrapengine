@@ -1,7 +1,9 @@
 """
 Article list scraper
 """
-import time, csv, requests
+import time
+import csv
+import requests
 from bs4 import BeautifulSoup
 from Scrapengine.configs import ARCHIVE
 
@@ -36,7 +38,7 @@ def _filter(links, _format='100r'):
     filter out links that don't fit into `_format`
 
     @links:   List of http links
-    @_format: Article link format 
+    @_format: Article link format
 
     Returns `links` without unwanted links
     """
@@ -48,16 +50,19 @@ def _filter(links, _format='100r'):
             assert sections[3].startswith('20')
             assert sections[4].isdigit()
             assert link.get('title')
-            clean_list[link.get('href').strip()] = dict(title=link.get('title'))
+            clean_list[link.get('href').strip()] = dict(
+                    title=link.get('title'))
         except (AssertionError, IndexError):
             continue
     return clean_list
+
 
 def output(links, source=""):
     """
     generates output file
 
-    @links:   A dict with key as the url and value is a dict with other article attributes
+    @links: dict with key as the url and value is a dict with other article
+            attributes
     """
     outputfile = "%s/article-%s-output-%s.csv" % (ARCHIVE, source, time.time())
     with open(outputfile, 'wa') as csvfile:
