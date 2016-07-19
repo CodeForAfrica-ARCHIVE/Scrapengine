@@ -31,8 +31,8 @@ def execute_article():
         links = article.get_links(page)
         article_links = article._filter(links, _format="100r")
         print "%d articles from %s" % (len(article_links), sources[source])
-        for link in article_links:
-            print article_links[link], "*" * 6 + link
+        output = article.output(article_links, source="engine")
+        print "Outputfile: %s" % output
 
 
 if __name__ == "__main__":

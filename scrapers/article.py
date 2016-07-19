@@ -1,8 +1,9 @@
 """
 Article list scraper
 """
-import requests
+import time, csv, requests
 from bs4 import BeautifulSoup
+from Scrapengine.configs import ARCHIVE
 
 
 def get_source_html(source):
@@ -47,12 +48,31 @@ def _filter(links, _format='100r'):
             assert sections[3].startswith('20')
             assert sections[4].isdigit()
             assert link.get('title')
-            clean_list[link.get('href').strip()] = link.get('title')
+            clean_list[link.get('href').strip()] = dict(title=link.get('title'))
         except (AssertionError, IndexError):
             continue
     return clean_list
 
+def output(links, source=""):
+    """
+    generates output file
+
+    @links:   A dict with key as the url and value is a dict with other article attributes
+    """
+    outputfile = "%s/article-%s-output-%s.csv" % (ARCHIVE, source, time.time())
+    with open(outputfile, 'wa') as csvfile:
+        outputwriter = csv.writer(csvfile, delimiter="#")
+        for entry in links:
+            outputwriter.writerow(
+                    [
+                        _encode(entry),
+                        _encode(links[entry]['title'])
+                        ]
+                    )
+
+    csvfile.close()
+    return outputfile
 
 
-
-
+def _encode(_unicode):
+    return _unicode.encode('utf-8')
