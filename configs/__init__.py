@@ -7,11 +7,8 @@ SCRAPERS = dict(
             },
 
         article={
-            "100r": "https://100r.org/section/all-categories/page/2/",
-            "": "",
-            
+            "100r": "https://100r.org/section/all-categories/page/4/",
             }
         )
-
 
 ARCHIVE = os.getenv("SCRAPENGINE_ARCHIVE_PATH", ".")

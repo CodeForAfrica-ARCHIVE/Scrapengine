@@ -28,3 +28,31 @@ def get_links(html):
     except Exception, err:
         print "ERROR: scrapers.article.get_links() - %s" % err
         raise err
+
+
+def _filter(links, _format='100r'):
+    """
+    filter out links that don't fit into `_format`
+
+    @links:   List of http links
+    @_format: Article link format 
+
+    Returns `links` without unwanted links
+    """
+    clean_list = {}
+    for link in links:
+        try:
+            sections = str(link.get('href')).split("/")
+            assert sections[0].startswith('http')
+            assert sections[3].startswith('20')
+            assert sections[4].isdigit()
+            assert link.get('title')
+            clean_list[link.get('href').strip()] = link.get('title')
+        except (AssertionError, IndexError):
+            continue
+    return clean_list
+
+
+
+
+

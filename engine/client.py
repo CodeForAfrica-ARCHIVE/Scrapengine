@@ -1,9 +1,11 @@
 """
 load and execute scrapers
 """
+import sys
 import csv
 import time
-from Scrapengine.scrapers import rss
+from Scrapengine.scrapers import rss, article
+from Scrapengine.configs import SCRAPERS
 
 def execute_rss(single=True):
     '''
@@ -20,8 +22,26 @@ def execute_rss(single=True):
         if single:
             break
 
+def execute_article():
+    sources = SCRAPERS['article']
+    print "scraper.article sources: %s" % sources.keys()
+    for source in sources:
+        print "scraping %s" % source
+        page = article.get_source_html(sources[source])
+        links = article.get_links(page)
+        article_links = article._filter(links, _format="100r")
+        print "%d articles from %s" % (len(article_links), sources[source])
+        for link in article_links:
+            print article_links[link], "*" * 6 + link
 
 
 if __name__ == "__main__":
-    execute_rss(single=False)
-    #execute_other()
+    try:
+        scraper = sys.argv[1]
+    except IndexError:
+        print "\n\n   Usage:  python client.py <scraper>\n\n"
+        sys.exit(2)
+    if scraper == "rss":
+        execute_rss(single=False)
+    elif scraper == "article":
+        execute_article()
