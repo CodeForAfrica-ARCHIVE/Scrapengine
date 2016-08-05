@@ -4,7 +4,7 @@ load and execute scrapers
 import sys
 import csv
 import time
-from Scrapengine.scrapers import rss, article
+from Scrapengine.scrapers import rss, article, lawyers_ke
 from Scrapengine.configs import SCRAPERS
 
 
@@ -36,6 +36,9 @@ def execute_article():
         output = article.output(article_links, source="engine")
         print "Outputfile: %s" % output
 
+def execute_lawyers_ke():
+    print lawyers_ke.main()
+
 
 if __name__ == "__main__":
     try:
@@ -47,3 +50,5 @@ if __name__ == "__main__":
         execute_rss(single=False)
     elif scraper == "article":
         execute_article()
+    elif scraper == "lawyers_ke":
+        execute_lawyers_ke()
