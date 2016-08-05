@@ -40,8 +40,9 @@ def execute_lawyers_ke():
     print lawyers_ke.main()
 
 def execute_nurses_ke():
-    #for name in nurses_ke.NAMES:
-    nurses_ke.main('otieno')
+    #nurses_ke.main("single", "alice")
+    #nurses_ke.main("all", names_source="Scrapengine.scrapers.names", source_type="list")
+    nurses_ke.main("all", names_source="/Users/aventador/code/c4a/Scrapengine/scrapers/names.csv", source_type="csv")
 
 
 if __name__ == "__main__":

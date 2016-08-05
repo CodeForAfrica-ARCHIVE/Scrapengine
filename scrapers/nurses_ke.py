@@ -79,25 +79,25 @@ class Scraper(object):
 
 
 
-def main(name, save='off'):
+def scrape_by_name(name, save='off'):
     start_time = datetime.now()
     scraper = Scraper()
     result = scraper.search_by_name(name)
     count = scraper._count(result)
     if not count or count == 1:
         print "Found no results for %s" % name
-        return
-    print "Scraped %s results for '%s'" % (count, name)
+        return []
+    print "Found %s results for '%s'" % (count, name)
 
-    for result in result['tables'][0]['results']:
-        print result
-        print "*" * 40
+    results = result['tables'][0]['results']
+    for result in results:
         try:
-            if save == 'off':
-                print "{name_value} | {license_number/_source} | {validtill_date/_source}".format(**result)
-            elif save == 'on':
-                license = result["license_number/_source"]
-                scraper.save(license, result)
+            nurse = dict(
+                    name=result["name_value"],
+                    license=result["license_number/_source"],
+                    validity=result["validtill_date/_source"]
+                    )
+            print "{name} | {license} | {validity}".format(**nurse)
         except KeyError:
             print "ERROR: Unexpected scrape response format for '%s' -- %s " % (name, result)
             break
@@ -109,13 +109,41 @@ def main(name, save='off'):
                 continue
             else:
                 # add to new names list
-                print "Adding '%s' to new names list" % n
+                #print "Adding '%s' to new names list" % n
                 with open(OUTPUT_FILE, 'a') as csvfile:
                     csvwriter = csv.writer(csvfile)
                     csvwriter.writerow([n])
         
     print "done in %s seconds" % (datetime.now() - start_time).seconds
+    return results
+
     
+
+def main(action, names_source, source_type="csv"):
+    result_count = 0
+    if action == "single":
+        result = scrape_by_name(names_source)
+        result_count += len(result)
+
+    elif action == "all":
+        if source_type == "list":
+            statement = "from %s import NAMES"
+            exec(statement % names_source)
+            for name in NAMES:
+                result = scrape_by_name(name)
+                result_count += len(result)
+
+
+        elif source_type == "csv":
+            with open(names_source, 'rb') as recordsreader:
+                records = csv.reader(recordsreader)
+                for record in records:
+                    result = scrape_by_name(record[0])
+                    result_count += len(result)
+
+    print "%s RESULTS" % result_count
+
+
 
 if __name__ == "__main__":
     usage = "\n\n Usage:\n\n  python scrape.py single <NAME> \n  OR\n  python scrape.py all <name> <list/csv>\n\n"
@@ -127,7 +155,7 @@ if __name__ == "__main__":
         sys.exit(2)
 
     if action == 'single':
-        main(name)
+        main(action, name)
     elif action == 'all':
         # argv[1]  -->  the action <all>
         # argv[2]  -->  name of a module containing a list called `NAMES`
@@ -144,9 +172,9 @@ if __name__ == "__main__":
             statement = "from %s import NAMES"
             exec(statement % name)
             for each in NAMES:
-                main(each)
+                main('single', name)
         elif _type == 'csv':
             with open(name, 'rb') as recordsreader:
                 records = csv.reader(recordsreader)
                 for record in records:
-                    main(record[0])
+                    main('single', name)
