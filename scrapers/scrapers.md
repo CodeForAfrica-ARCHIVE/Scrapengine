@@ -17,4 +17,4 @@ Outputs from nurses_ke scraper
 
 To keep in mind:
 -----
-* The name search on the NSK site only returns 40 results per name.
+* The name search on the NSK site only returns 40 results per name. (And has no "Next page" facility)

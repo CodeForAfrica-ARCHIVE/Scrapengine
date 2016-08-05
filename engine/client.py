@@ -41,8 +41,8 @@ def execute_lawyers_ke():
 
 def execute_nurses_ke():
     #nurses_ke.main("single", "alice")
-    #nurses_ke.main("all", names_source="Scrapengine.scrapers.names", source_type="list")
-    nurses_ke.main("all", names_source="/Users/aventador/code/c4a/Scrapengine/scrapers/names.csv", source_type="csv")
+    nurses_ke.main("all", names_source="Scrapengine.scrapers.names", source_type="list")
+    #nurses_ke.main("all", names_source="/Users/aventador/code/c4a/Scrapengine/scrapers/names.csv", source_type="csv")
 
 
 if __name__ == "__main__":

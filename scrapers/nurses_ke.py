@@ -12,7 +12,7 @@ For name in names:
     - Repeat
 """
 
-import os, sys, csv, requests
+import os, sys, csv, requests, uuid
 from requests.exceptions import ReadTimeout, HTTPError
 from datetime import datetime
 from urllib import urlencode, quote
@@ -90,6 +90,7 @@ def scrape_by_name(name, save='off'):
     print "Found %s results for '%s'" % (count, name)
 
     results = result['tables'][0]['results']
+    results_clean = []
     for result in results:
         try:
             nurse = dict(
@@ -97,7 +98,8 @@ def scrape_by_name(name, save='off'):
                     license=result["license_number/_source"],
                     validity=result["validtill_date/_source"]
                     )
-            print "{name} | {license} | {validity}".format(**nurse)
+            #print "{name} | {license} | {validity}".format(**nurse)
+            results_clean.append(nurse)
         except KeyError:
             print "ERROR: Unexpected scrape response format for '%s' -- %s " % (name, result)
             break
@@ -115,14 +117,37 @@ def scrape_by_name(name, save='off'):
                     csvwriter.writerow([n])
         
     print "done in %s seconds" % (datetime.now() - start_time).seconds
-    return results
+    return results_clean
 
-    
+
+def output(outputfile, results=[]):
+    try:
+        outputwriter = csv.writer(outputfile, delimiter=",")
+        for result in results:
+            outputwriter.writerow([
+                _encode(result['name']),
+                _encode(result['license']),
+                _encode(result['validity'])
+                ])
+
+    except Exception, err:
+        print "ERROR on output: %s" % str(err)
+
+
+def _encode(_unicode):
+    return _unicode.encode('utf-8')
+
 
 def main(action, names_source, source_type="csv"):
+    run_id = str(uuid.uuid4())
+    print "[%s]: START | RUN ID: %s" % (datetime.now(), run_id)
     result_count = 0
+    filename = "%s/nurses-ke-%s.csv" % (ARCHIVE, run_id)
+    outputfile = open(filename, 'wa')
+
     if action == "single":
         result = scrape_by_name(names_source)
+        output(outputfile, result)
         result_count += len(result)
 
     elif action == "all":
@@ -131,6 +156,7 @@ def main(action, names_source, source_type="csv"):
             exec(statement % names_source)
             for name in NAMES:
                 result = scrape_by_name(name)
+                output(outputfile, result)
                 result_count += len(result)
 
 
@@ -139,42 +165,13 @@ def main(action, names_source, source_type="csv"):
                 records = csv.reader(recordsreader)
                 for record in records:
                     result = scrape_by_name(record[0])
+                    output(outputfile, result)
                     result_count += len(result)
 
-    print "%s RESULTS" % result_count
+    outputfile.close()
+    print "[%s]: STOP | RUN ID: %s | %s RESULTS | Writen to %s" % (datetime.now(), run_id, result_count, filename)
 
 
 
 if __name__ == "__main__":
-    usage = "\n\n Usage:\n\n  python scrape.py single <NAME> \n  OR\n  python scrape.py all <name> <list/csv>\n\n"
-    try:
-        action = sys.argv[1]
-        name = sys.argv[2]
-    except:
-        print usage
-        sys.exit(2)
-
-    if action == 'single':
-        main(action, name)
-    elif action == 'all':
-        # argv[1]  -->  the action <all>
-        # argv[2]  -->  name of a module containing a list called `NAMES`
-        #               or
-        #               name of a csv with a list of names on one column
-        # argv[3]  -->  source type <list/csv>
-        try:
-            _type = sys.argv[3]
-            assert _type in ('list', 'csv')
-        except (IndexError, AssertionError):
-            print usage
-            sys.exit(2)
-        if _type == 'list':
-            statement = "from %s import NAMES"
-            exec(statement % name)
-            for each in NAMES:
-                main('single', name)
-        elif _type == 'csv':
-            with open(name, 'rb') as recordsreader:
-                records = csv.reader(recordsreader)
-                for record in records:
-                    main('single', name)
+    pass
