@@ -11,6 +11,9 @@ SCRAPERS = dict(
             },
         lawyers_ke={
             "lsk": "http://online.lsk.or.ke/index.php/index.php?option=com_content&id=4&catid=8&qw=active&finder=Active&view=article&base=%s"
+            },
+        nurses_ke={
+            "nck": "http://nckenya.com/services/search.php?"
             }
         )
 

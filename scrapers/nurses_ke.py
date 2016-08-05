@@ -17,9 +17,9 @@ from requests.exceptions import ReadTimeout, HTTPError
 from datetime import datetime
 from urllib import urlencode, quote
 from names import NAMES
-from Scrapengine.configs import ARCHIVE
+from Scrapengine.configs import ARCHIVE, SCRAPERS
 
-SOURCE = "http://nckenya.com/services/search.php?"
+SOURCE = SCRAPERS['nurses_ke']['nck']
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}&_apikey={apikey}"
 API_KEY = os.getenv("IMPORTIO_API_KEY")
 OUTPUT_FILE = "%s/names-extra.csv" % ARCHIVE
