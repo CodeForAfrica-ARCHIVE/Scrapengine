@@ -4,7 +4,7 @@ load and execute scrapers
 import sys
 import csv
 import time
-from Scrapengine.scrapers import rss, article, lawyers_ke
+from Scrapengine.scrapers import rss, article, lawyers_ke, nurses_ke
 from Scrapengine.configs import SCRAPERS
 
 
@@ -39,6 +39,10 @@ def execute_article():
 def execute_lawyers_ke():
     print lawyers_ke.main()
 
+def execute_nurses_ke():
+    #for name in nurses_ke.NAMES:
+    nurses_ke.main('otieno')
+
 
 if __name__ == "__main__":
     try:
@@ -52,3 +56,5 @@ if __name__ == "__main__":
         execute_article()
     elif scraper == "lawyers_ke":
         execute_lawyers_ke()
+    elif scraper == "nurses_ke":
+        execute_nurses_ke()
