@@ -79,7 +79,7 @@ class LSKScraper(object):
 
     def write(self, results=[]):
         outputfile = "%s/%s.csv" % (ARCHIVE, self._id)
-        with open(outputfile, 'wa') as csvfile:
+        with open(outputfile, 'a') as csvfile:
             outputwriter = csv.writer(csvfile, delimiter=",")
             for result in results:
                 outputwriter.writerow([
