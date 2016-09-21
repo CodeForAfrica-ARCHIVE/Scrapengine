@@ -2,8 +2,9 @@
 scrapengine/scrapers/starhealth_news tests
 """
 import os
-import unittest
+import json
 import random
+import unittest
 from Scrapengine.scrapers import starhealth_news
 from Scrapengine.configs import ARCHIVE
 
@@ -36,6 +37,28 @@ class StarhealthnewsScraperTestCase(unittest.TestCase):
                 os.remove("%s/%s" % (ARCHIVE, _file))
                 break
         self.assertTrue(generated, msg="Output not generated")
+
+
+    def test_publish_output(self, ):
+        file_name = "test-file-%s.txt" % random.randint(1, 100000000000)
+        testfile = "%s/%s" % (ARCHIVE, file_name)
+        f = open(testfile, "w")
+        f.write("test content")
+        f.close()
+        starhealth_news.publish_output(testfile)
+
+        # delete file from dropbox
+        headers = {
+                "Authorization": "Bearer %s" % starhealth_news.DROPBOX_KEY,
+                "Content-Type": "application/json"
+                }
+        data = dict(path="/%s/%s" % (starhealth_news.DROPBOX_FOLDER, file_name))
+        print "*" * 30
+        print headers
+        print data
+        print "*" * 30
+        deleteresp = starhealth_news.requests.post("https://api.dropboxapi.com/2/files/delete", headers=headers, data=json.dumps(data))
+        self.assertEqual(deleteresp.status_code, 200, msg="Failed to delete file from Dropbox -- %s - %s" % (deleteresp.status_code, deleteresp.reason))
 
 
 if __name__ == '__main__':
