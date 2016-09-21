@@ -54,12 +54,13 @@ def publish_output(file_to_upload):
                 }
         data = open(file_to_upload, "r").read()
         resp = requests.post(DROPBOX_URL, headers=headers, data=data)
-        print resp.status_code
-        print resp.text
+        return resp.json()["path_display"]
     except Exception, err:
         print "ERROR: publish_output() - %s" % str(err)
         raise err
 
 
 def main():
-    print "Done"
+    articles = get_articles()
+    outputfile = output(articles)
+    return publish_output(outputfile)

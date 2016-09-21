@@ -53,10 +53,6 @@ class StarhealthnewsScraperTestCase(unittest.TestCase):
                 "Content-Type": "application/json"
                 }
         data = dict(path="/%s/%s" % (starhealth_news.DROPBOX_FOLDER, file_name))
-        print "*" * 30
-        print headers
-        print data
-        print "*" * 30
         deleteresp = starhealth_news.requests.post("https://api.dropboxapi.com/2/files/delete", headers=headers, data=json.dumps(data))
         self.assertEqual(deleteresp.status_code, 200, msg="Failed to delete file from Dropbox -- %s - %s" % (deleteresp.status_code, deleteresp.reason))
 
