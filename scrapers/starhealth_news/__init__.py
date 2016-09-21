@@ -1,5 +1,5 @@
 """
-Scrape news articles from www.the-star.co.ke/api/mobile/views/mobile_app?args%5B0%5D=24&limit=3
+Scrape news articles from www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=24&limit=3
 """
 import os
 import time
