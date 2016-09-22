@@ -1,5 +1,9 @@
 """
 Scrape news articles from www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=24&limit=3
+
+Cron entry:
+    06 * * * * source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-news && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
+
 """
 import os
 import sys
