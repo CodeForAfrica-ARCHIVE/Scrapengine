@@ -2,15 +2,18 @@
 Scrape news articles from www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=24&limit=3
 """
 import os
+import sys
+import boto
 import time
 import requests
+from boto.s3.key import Key
 from Scrapengine.configs import ARCHIVE
 
 SOURCE_URL = "http://www.the-star.co.ke/api/mobile/views/mobile_app?args[0]=24&limit=%s"
 OUTPUTFILE = "starhealth_news-output"
-DROPBOX_FOLDER = "starhealth-news"
-DROPBOX_URL = "https://content.dropboxapi.com/2/files/upload"
-DROPBOX_KEY = os.getenv("DROPBOX_API_KEY")
+AWS_API_KEY = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_API_SECRET = os.getenv("AWS_SECRET_KEY")
+S3_BUCKET_NAME = "starhealth-news-dump"
 
 
 def get_articles(count=50):
@@ -38,27 +41,28 @@ def output(articles, outputfile=OUTPUTFILE):
         raise err
 
 
+def percent_cb(complete, total):
+    sys.stdout.write('.')
+    sys.stdout.flush()
+
+
 def publish_output(file_to_upload):
     """
-    upload the output file to Dropbox
+    upload output file to S3
     """
     try:
         x = file_to_upload.split("/")
         filename = x[len(x)-1] or x[len(x)-2]
-        path_component = "{\"path\":\"/%s/%s\",\"mode\":{\".tag\":\"add\"},\"autorename\":false}" % (
-                DROPBOX_FOLDER, filename)
-        headers = { 
-                "Authorization": "Bearer %s" % DROPBOX_KEY,
-                "Content-Type": "application/octet-stream",
-                "Dropbox-API-Arg": path_component
-                }
-        data = open(file_to_upload, "r").read()
-        resp = requests.post(DROPBOX_URL, headers=headers, data=data)
-        return resp.json()["path_display"]
+        conn = boto.connect_s3(AWS_API_KEY, AWS_API_SECRET)
+        bucket = conn.get_bucket(S3_BUCKET_NAME)
+        k = Key(bucket)
+        k.key = filename
+        resp = k.set_contents_from_filename(file_to_upload, cb=percent_cb, num_cb=10)
+        return resp
+
     except Exception, err:
         print "ERROR: publish_output() - %s" % str(err)
         raise err
-
 
 def main():
     articles = get_articles()

@@ -47,15 +47,14 @@ class StarhealthnewsScraperTestCase(unittest.TestCase):
         f.close()
         starhealth_news.publish_output(testfile)
 
-        # delete file from dropbox
-        headers = {
-                "Authorization": "Bearer %s" % starhealth_news.DROPBOX_KEY,
-                "Content-Type": "application/json"
-                }
-        data = dict(path="/%s/%s" % (starhealth_news.DROPBOX_FOLDER, file_name))
-        deleteresp = starhealth_news.requests.post("https://api.dropboxapi.com/2/files/delete", headers=headers, data=json.dumps(data))
-        self.assertEqual(deleteresp.status_code, 200, msg="Failed to delete file from Dropbox -- %s - %s" % (deleteresp.status_code, deleteresp.reason))
-
+        # delete file from S3
+        conn = starhealth_news.boto.connect_s3(starhealth_news.AWS_API_KEY,
+                starhealth_news.AWS_API_SECRET)
+        bucket = conn.get_bucket(starhealth_news.S3_BUCKET_NAME)
+        s3key = starhealth_news.Key(bucket)
+        s3key.key = "/" + file_name
+        deleteresp = bucket.delete_key(s3key)
+        #self.assertIsInstance(deleteresp, int)
 
 if __name__ == '__main__':
     unittest.main()
