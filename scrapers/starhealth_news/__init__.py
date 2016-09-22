@@ -4,7 +4,6 @@ Scrape news articles from www.the-star.co.ke/api/mobile/views/mobile_app?args[0]
 import os
 import sys
 import boto
-import time
 import requests
 from boto.s3.key import Key
 from Scrapengine.configs import ARCHIVE
@@ -31,7 +30,7 @@ def get_articles(count=50):
 
 def output(articles, outputfile=OUTPUTFILE):
     try:
-        file_fullpath = "%s/%s-%s.json" % (ARCHIVE, outputfile, time.time())
+        file_fullpath = "%s/%s.json" % (ARCHIVE, outputfile)
         _file = open(file_fullpath, "w")
         _file.write(str(articles))
         _file.close()
