@@ -26,6 +26,7 @@ from bs4 import BeautifulSoup
 MONTH_URL = "http://kenyalaw.org/kenya_gazette/gazette/month/{month}/{year}"
 VOLUME_URL = "http://kenyalaw.org/kenya_gazette/gazette/volume"
 PDF_URL = "http://kenyalaw.org/kenya_gazette/gazette/download"
+OUTPUTFILE = "/tmp/ke_gazettes.txt"
 
 
 def get_month_html(month, year):
@@ -73,7 +74,15 @@ def extract_volume_urls(html_page):
     return volume_urls
 
 
+def openfile(filename):
+    return open(filename, "a")
+
+def write_to_file(fileobj, value):
+    fileobj.write(str(value))
+
+
 def main():
+    outputfile = openfile(OUTPUTFILE)
     year = 2006
     while year <= 2016:
         month = 1
@@ -84,6 +93,12 @@ def main():
             for url in volume_urls:
                 volume_page = get_volume_html(str(url).strip())[0]
                 pdf_url = extract_pdf_url(volume_page)
-                print "%s - %s" % (url, pdf_url)
+                write_to_file(outputfile, pdf_url)
+            
+            print "Month %s/%s done" % (month, year)
             month += 1
+        
+        print "Year %s done" % year
         year += 1
+    outputfile.close()
+    return OUTPUTFILE
