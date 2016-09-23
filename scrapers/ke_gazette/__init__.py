@@ -78,7 +78,11 @@ def openfile(filename):
     return open(filename, "a")
 
 def write_to_file(fileobj, value):
-    fileobj.write(str(value))
+    try:
+        fileobj.write(str(value).encode('utf-8'))
+        fileobj.write("\n")
+    except UnicodeEncodeError:
+        print "ERROR: %s" % value
 
 
 def main():
