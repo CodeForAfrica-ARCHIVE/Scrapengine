@@ -52,6 +52,8 @@ def extract_pdf_url(volume_page):
     page_urls = soup.find_all("a")
     for each in page_urls:
         url = each.get("href")
+        if not url:
+            break
         if url.startswith(PDF_URL):
             return url
     return None
@@ -69,6 +71,8 @@ def extract_volume_urls(html_page):
     page_urls = soup.find_all("a")
     for each in page_urls:
         url = each.get("href")
+        if not url:
+            break
         if url.startswith(VOLUME_URL):
             volume_urls.append(url)
     return volume_urls
