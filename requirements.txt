@@ -4,4 +4,3 @@ beautifulsoup4
 requests
 dataset
 boto
-beautifulsoup4
