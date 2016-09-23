@@ -50,7 +50,7 @@ def execute_starhealth_news():
 
 
 def execute_ke_gazette():
-    print ke_gazette.main()
+    ke_gazette.main()
 
 
 if __name__ == "__main__":

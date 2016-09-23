@@ -17,7 +17,7 @@ Download URL: http://kenyalaw.org/kenya_gazette/gazette/download/Vol._CVIII-No_.
     - Extract volume URLs
     - Loop through volume URLs
       - Get volume HTML
-      - Extract Download URLs
+      - Extract Download URL
       - Download PDF
 """
 import requests
@@ -73,6 +73,17 @@ def extract_volume_urls(html_page):
     return volume_urls
 
 
-
 def main():
-    return "Done"
+    year = 2006
+    while year <= 2016:
+        month = 1
+        while month <= 12:
+            month_page = get_month_html(month, year)[0]
+            volume_urls = extract_volume_urls(month_page)
+            print "%s/%s - %s docs" % (month, year, len(volume_urls))
+            for url in volume_urls:
+                volume_page = get_volume_html(str(url).strip())[0]
+                pdf_url = extract_pdf_url(volume_page)
+                print "%s - %s" % (url, pdf_url)
+            month += 1
+        year += 1
