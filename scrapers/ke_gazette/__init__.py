@@ -85,11 +85,22 @@ def write_to_file(fileobj, value):
         print "ERROR: %s" % value
 
 
-def main():
+def main(xargs):
+    if xargs:
+        try:
+            start_month = int(xargs.split("/")[0])
+            start_year = int(xargs.split("/")[1])
+        except Exception, err:
+            print "ERROR: Unknown arguments for month and year: %s. Use format 1/2009 to start at January 2009" % xargs
+            raise err
+    else:
+        start_month = 1
+        start_year = 2006
+
     outputfile = openfile(OUTPUTFILE)
-    year = 2006
+    year = start_year
     while year <= 2016:
-        month = 1
+        month = start_month
         while month <= 12:
             month_page = get_month_html(month, year)[0]
             volume_urls = extract_volume_urls(month_page)

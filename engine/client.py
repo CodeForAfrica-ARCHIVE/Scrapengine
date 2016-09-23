@@ -49,8 +49,8 @@ def execute_starhealth_news():
     print starhealth_news.main()
 
 
-def execute_ke_gazette():
-    ke_gazette.main()
+def execute_ke_gazette(xargs):
+    ke_gazette.main(xargs)
 
 
 if __name__ == "__main__":
@@ -59,6 +59,11 @@ if __name__ == "__main__":
     except IndexError:
         print "\n\n   Usage:  python client.py <scraper>\n\n"
         sys.exit(2)
+    try:
+        xargs = sys.argv[2]
+    except IndexError:
+        xargs = None
+    
     if scraper == "rss":
         execute_rss(single=False)
     elif scraper == "article":
@@ -70,6 +75,6 @@ if __name__ == "__main__":
     elif scraper == "starhealth-news":
         execute_starhealth_news()
     elif scraper == "ke-gazette":
-        execute_ke_gazette()
+        execute_ke_gazette(xargs)
     else:
         print "Scraper %s does not exist" % scraper
