@@ -24,7 +24,7 @@ Download URL: http://kenyalaw.org/kenya_gazette/gazette/download/Vol._CVIII-No_.
 - Cron:
     30 23 * * Sun source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=ke-gazette xargs=1/2016 && curl -fsS --retry 3 https://hchk.io/a225fd72-74ae-45cb-96b9-8d3d753b3f82 > /dev/null
     30 22 * * Mon bash -x /alephdata/srv/Scrapengine/scrapers/ke_gazette/download.sh
-    30 23 * * Mon cat /tmp/ke_gazettes.txt | bash -x 
+    30 23 * * Mon cd /alephdata/srv/data/sources/kenya/ke-gazette && cat /tmp/ke_gazettes.txt | bash -x 
 """
 import requests
 from bs4 import BeautifulSoup
