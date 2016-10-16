@@ -33,7 +33,7 @@ MONTH_URL = "http://kenyalaw.org/kenya_gazette/gazette/month/{month}/{year}"
 VOLUME_URL = "http://kenyalaw.org/kenya_gazette/gazette/volume"
 PDF_URL = "http://kenyalaw.org/kenya_gazette/gazette/download"
 OUTPUTFILE = "/tmp/ke_gazettes.txt"
-FILE_NAME_SCHEME = "OpenGazettes | Kenya | {volume_name} ( {volume_date} )"
+FILE_NAME_SCHEME = "OpenGazettes | Kenya | %s ( %s )"
 
 
 def get_month_html(month, year):
@@ -94,6 +94,9 @@ def openfile(filename):
     return open(filename, "a")
 
 def write_to_file(fileobj, value):
+    """
+    write content `value` to file `fileobj` and append a newline
+    """
     try:
         fileobj.write(str(value).encode('utf-8'))
         fileobj.write("\n")
@@ -124,11 +127,13 @@ def main(xargs):
             for url_objs in volume_urls:
                 url = url_objs["url"]
                 date = url_objs["volume_date"]
-                print "*" * 40
-                print url
                 volume_page = get_volume_html(url.strip())[0]
                 pdf_url = extract_pdf_url(volume_page)
-                write_to_file(outputfile, pdf_url)
+
+                default_name = url.split("/").pop()
+                custom_file_name = FILE_NAME_SCHEME % (default_name, date)
+                write_content = """%s -O "%s.pdf" """ % (pdf_url, custom_file_name)
+                write_to_file(outputfile, write_content)
             
             print "Month %s/%s done" % (month, year)
             month += 1
