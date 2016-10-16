@@ -33,6 +33,7 @@ MONTH_URL = "http://kenyalaw.org/kenya_gazette/gazette/month/{month}/{year}"
 VOLUME_URL = "http://kenyalaw.org/kenya_gazette/gazette/volume"
 PDF_URL = "http://kenyalaw.org/kenya_gazette/gazette/download"
 OUTPUTFILE = "/tmp/ke_gazettes.txt"
+FILE_NAME_SCHEME = "OpenGazettes | Kenya | {volume_name} ( {volume_date} )"
 
 
 def get_month_html(month, year):
@@ -65,22 +66,27 @@ def extract_pdf_url(volume_page):
     return None
 
 
-def extract_volume_urls(html_page):
+def extract_volume_urls_and_dates(html_page):
     """
-    return all volume URLs on the page by going through all URLs on the page
-    and filtering out those that don't match the volume URL structure / pattern
+    return all volume URLs and associated dates on the page by going through
+    all URLs and filtering out those that don't match the volume URL 
+    structure / pattern
 
     returns empty list if no volume URLs are found
     """
     volume_urls = []
     soup = BeautifulSoup(html_page, "html.parser")
-    page_urls = soup.find_all("a")
+    page_urls = soup.find_all("tr")
     for each in page_urls:
-        url = each.get("href")
-        if not url:
-            break
+        url_ = each.find("a")
+        if not url_:
+            continue
+        url = str(url_.get("href"))
+        attributes = each.find_all("td")
+        volume_date = attributes[len(attributes)-1].children.next()
+
         if url.startswith(VOLUME_URL):
-            volume_urls.append(url)
+            volume_urls.append(dict(url=str(url).strip(), volume_date=str(volume_date)))
     return volume_urls
 
 
@@ -113,10 +119,14 @@ def main(xargs):
         month = start_month
         while month <= 12:
             month_page = get_month_html(month, year)[0]
-            volume_urls = extract_volume_urls(month_page)
+            volume_urls = extract_volume_urls_and_dates(month_page)
             print "%s/%s - %s docs" % (month, year, len(volume_urls))
-            for url in volume_urls:
-                volume_page = get_volume_html(str(url).strip())[0]
+            for url_objs in volume_urls:
+                url = url_objs["url"]
+                date = url_objs["volume_date"]
+                print "*" * 40
+                print url
+                volume_page = get_volume_html(url.strip())[0]
                 pdf_url = extract_pdf_url(volume_page)
                 write_to_file(outputfile, pdf_url)
             

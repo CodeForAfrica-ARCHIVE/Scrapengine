@@ -11,8 +11,8 @@ class KEGazetteScraperTestCase(unittest.TestCase):
     def setUp(self,):
         self.foo = True
         self.month_resp = self._get_month_html()
-        self.volume_urls = ke_gazette.extract_volume_urls(self.month_resp[0])
-        self.volume_url = self.volume_urls[random.randint(0, len(self.volume_urls)-1)]
+        self.volume_urls = ke_gazette.extract_volume_urls_and_dates(self.month_resp[0])
+        self.volume_url = self.volume_urls[random.randint(0, len(self.volume_urls)-1)]["url"]
         self.volume_resp = ke_gazette.get_volume_html(self.volume_url)
 
     def _get_month_html(self, ):
@@ -25,11 +25,15 @@ class KEGazetteScraperTestCase(unittest.TestCase):
         self.assertEqual(self.month_resp[1], 200)
         self.assertTrue("DOCTYPE html" in self.month_resp[0][0:20], msg="Doesn't look like an html file")
 
-    def test_extract_volume_urls(self, ):
+    def test_extract_volume_urls_and_dates(self, ):
         self.assertIsInstance(self.volume_urls, list)
         if self.volume_urls:
-            for url in self.volume_urls:
+            for url_obj in self.volume_urls:
+                url = url_obj["url"]
+                date = url_obj["volume_date"]
                 self.assertTrue(url.startswith(ke_gazette.VOLUME_URL), msg="Doesn't look like a valid volume URL")
+                self.assertTrue(str(date)[:2].isdigit())
+                self.assertTrue(str(date)[-4:].isdigit())
 
     def test_get_volume_html(self, ):
         self.assertEqual(self.volume_resp[1], 200)
