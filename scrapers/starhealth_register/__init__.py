@@ -1,5 +1,8 @@
 """
 periodically pull the Kenya medical practitioners' database
+
+Cron entry:
+    @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
 """
 import uuid, csv
 import os, dataset, requests
