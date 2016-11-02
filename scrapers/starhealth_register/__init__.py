@@ -11,8 +11,7 @@ API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
 #API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}&_apikey={apikey}"
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
 SOURCE = SCRAPERS['medicalboard']['doctors']
-#PAGES = 276 # Get this from the site
-PAGES = 6 # Get this from the site
+PAGES = 276 # Get this from the site
 TIMEOUT = 15 # Request timeout in seconds
 PERSIST = False
 OUTPUT_FILE_PREFIX = "starhealth_register"
