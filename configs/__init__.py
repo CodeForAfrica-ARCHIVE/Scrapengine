@@ -14,6 +14,9 @@ SCRAPERS = dict(
             },
         nurses_ke={
             "nck": "http://nckenya.com/services/search.php?"
+            },
+        medicalboard={
+            "doctors":"http://medicalboard.co.ke/online-services/retention/?currpage=%s"
             }
         )
 
