@@ -6,7 +6,7 @@ import csv
 import time
 from Scrapengine.scrapers import (
         rss, article, lawyers_ke, nurses_ke, starhealth_news, starhealth_register,
-        ke_gazette)
+        ke_gazette, na_gazette)
 from Scrapengine.configs import SCRAPERS
 
 
@@ -55,6 +55,9 @@ def execute_starhealth_register():
 def execute_ke_gazette(xargs):
     ke_gazette.main(xargs)
 
+def execute_na_gazette():
+    print na_gazette.main()
+
 
 if __name__ == "__main__":
     try:
@@ -81,5 +84,7 @@ if __name__ == "__main__":
         execute_ke_gazette(xargs)
     elif scraper == "starhealth-register":
         execute_starhealth_register()
+    elif scraper == "na-gazette":
+        execute_na_gazette()
     else:
         print "Scraper %s does not exist" % scraper
