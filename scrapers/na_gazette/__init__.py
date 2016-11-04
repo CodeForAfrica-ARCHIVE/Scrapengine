@@ -93,7 +93,7 @@ def main():
     start_year = START_YEAR
     outputfile = openfile(OUTPUTFILE)
     year = start_year
-    id_ = 100
+    id_ = 1
     while year <= END_YEAR:
         # Looop through until you get a 404
         raw_document = PDF_URL.format(year=year, ID=id_)
@@ -107,7 +107,7 @@ def main():
             # 404. Move to next year
             print "%s documents from %s" % (id_-1, year)
             year += 1
-            id_ = 100
+            id_ = 1
 
     for url in all_gazette_documents:
         default_name = url.split("/").pop()
