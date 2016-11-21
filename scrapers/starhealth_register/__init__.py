@@ -13,7 +13,11 @@ from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS
 API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
 #API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}&_apikey={apikey}"
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
-SOURCE = SCRAPERS['medicalboard']['doctors']
+SOURCE = dict(
+        doctors=SCRAPERS["medicalboard"]["doctors"],
+        foreign_doctors=SCRAPERS["medicalboard"]["foreign_doctors"],
+        clinical_officers=SCRAPERS["medicalboard"]["clinical_officers"]
+        )
 PAGES = 276 # Get this from the site
 TIMEOUT = 15 # Request timeout in seconds
 PERSIST = False
@@ -21,11 +25,41 @@ OUTPUT_FILE_PREFIX = "starhealth_register"
 
 
 class MedicalBoardScraper(object):
-    def __init__(self, run_id):
+    def __init__(self, run_id, source):
         self.api = API
         self.apikey = API_KEY
-        self.source = SOURCE
         self._id = run_id
+        self.source = source
+        self.source_url = SOURCE[source]
+        self.fields = dict(
+                doctors=dict(
+                    name="name_value",
+                    registration_number="regno_value",
+                    qualification="qualifications_value",
+                    address="address_value",
+
+                    registration_date="regdate_date/_source",
+                    specialty="specialty_value",
+                    sub_specialty="sub_value"
+                    ),
+                foreign_doctors=dict(
+                    name="name_value",
+                    registration_number="licence_number/_source",
+                    qualification="qualifications_value",
+                    address="address_value",
+
+                    facility="facility_value",
+                    practice_type="practicetype_value",
+                    ),
+                clinical_officers=dict(
+                    name="name_value",
+                    registration_number="regnolicence_value",
+                    qualification="qualifications_label",
+                    address="address_value",
+
+                    registration_date="regdate_value",
+                    )
+                )
 
         #self.db = dataset.connect("mysql://{username}:{password}@{host}".format(**DATABASE))
 
@@ -40,7 +74,7 @@ class MedicalBoardScraper(object):
     def scrape_page(self, page):
         try:
             args = dict(
-                    url=quote(self.source % page),
+                    url=quote(self.source_url % page),
                     apikey=self.apikey
                     )
             print "GETting page: %s" % args["url"]
@@ -56,13 +90,10 @@ class MedicalBoardScraper(object):
             for result in results:
                 try:
                     doctor_payload = {}
-                    doctor_payload["name"] = result.get("name_value", "None")
-                    doctor_payload["registration_number"] = result.get("regno_value", "None")
-                    doctor_payload["qualification"] = result.get("qualifications_value", "None")
-                    doctor_payload["registration_date"] = result.get("regdate_date/_source", "None")
-                    doctor_payload["address"] = result.get("address_value", "None")
-                    doctor_payload["specialty"] = result.get("specialty_value", "None")
-                    doctor_payload["sub_specialty"] = result.get("sub_value", "None")
+                    for attr in self.fields[self.source]:
+                        doctor_payload[attr] = result.get(self.fields[self.source][attr], "None")
+                        doctor_payload["type"] = self.source
+                    
                     start = datetime.now()
 
                     if PERSIST:
@@ -86,15 +117,10 @@ class MedicalBoardScraper(object):
         with open(outputfile, 'a') as csvfile:
             outputwriter = csv.writer(csvfile, delimiter=",")
             for result in results:
-                outputwriter.writerow([
-                    _encode(result['name']),
-                    _encode(result['registration_number']),
-                    _encode(result['registration_date']),
-                    _encode(result['qualification']),
-                    _encode(result["specialty"]),
-                    _encode(result["sub_specialty"]),
-                    _encode(result["address"])
-                        ])
+                attrs = []
+                for attr in self.fields[self.source]:
+                    attrs.append(_encode(result[attr]))
+                outputwriter.writerow(attrs)
         csvfile.close()
         return outputfile
 
@@ -103,12 +129,12 @@ def _encode(_unicode):
     return _unicode.encode('utf-8')
 
 
-def main():
+def main(source):
     """
     Execute scraper
     """
     run_id = str(uuid.uuid4())
-    medboardscraper = MedicalBoardScraper(run_id)
+    medboardscraper = MedicalBoardScraper(run_id, source)
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
     for page in range(0, PAGES+1):
         print "scraping page %s" % str(page)
@@ -120,4 +146,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    pass

@@ -16,7 +16,9 @@ SCRAPERS = dict(
             "nck": "http://nckenya.com/services/search.php?"
             },
         medicalboard={
-            "doctors":"http://medicalboard.co.ke/online-services/retention/?currpage=%s"
+            "doctors": "http://medicalboard.co.ke/online-services/retention/?currpage=%s",
+            "foreign_doctors": "http://medicalboard.co.ke/online-services/foreign-doctors-license-register/?currpage=%s",
+            "clinical_officers": "http://clinicalofficerscouncil.org/online-services/retention/?currpage=%s"
             }
         )
 

@@ -49,8 +49,8 @@ def execute_nurses_ke():
 def execute_starhealth_news():
     print starhealth_news.main()
 
-def execute_starhealth_register():
-    print starhealth_register.main()
+def execute_starhealth_register(source):
+    print starhealth_register.main(source)
 
 def execute_ke_gazette(xargs):
     ke_gazette.main(xargs)
@@ -82,8 +82,12 @@ if __name__ == "__main__":
         execute_starhealth_news()
     elif scraper == "ke-gazette":
         execute_ke_gazette(xargs)
-    elif scraper == "starhealth-register":
-        execute_starhealth_register()
+    elif scraper == "starhealth-register-doctors":
+        execute_starhealth_register("doctors")
+    elif scraper == "starhealth-register-foreign_doctors":
+        execute_starhealth_register("foreign_doctors")
+    elif scraper == "starhealth-register-clinical_officers":
+        execute_starhealth_register("clinical_officers")
     elif scraper == "na-gazette":
         execute_na_gazette()
     else:
