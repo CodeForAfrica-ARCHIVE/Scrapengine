@@ -113,7 +113,7 @@ class MedicalBoardScraper(object):
             raise err
 
     def write(self, results=[]):
-        outputfile = "%s/%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self._id)
+        outputfile = "%s/%s-%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
         with open(outputfile, 'a') as csvfile:
             outputwriter = csv.writer(csvfile, delimiter=",")
             for result in results:
