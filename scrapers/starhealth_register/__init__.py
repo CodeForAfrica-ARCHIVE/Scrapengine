@@ -117,7 +117,7 @@ class MedicalBoardScraper(object):
         with open(outputfile, 'a') as csvfile:
             outputwriter = csv.writer(csvfile, delimiter=",")
             for result in results:
-                attrs = []
+                attrs = [self.source]
                 for attr in self.fields[self.source]:
                     attrs.append(_encode(result[attr]))
                 outputwriter.writerow(attrs)
