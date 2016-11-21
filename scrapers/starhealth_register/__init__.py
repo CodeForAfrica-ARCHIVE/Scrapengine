@@ -117,7 +117,6 @@ class MedicalBoardScraper(object):
             return all_entries, skip_count
         except Exception, err:
             print "ERROR: Failed to scrape data from page %s  -- %s" % (page, err)
-            continue
 
     def write(self, results=[]):
         outputfile = "%s/%s-%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
@@ -145,7 +144,11 @@ def main(source):
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
     for page in range(0, PAGES[source]+1):
         print "scraping page %s" % str(page)
-        results = medboardscraper.scrape_page(str(page))
+        try:
+            results = medboardscraper.scrape_page(str(page))
+        except Exception, err:
+            print "ERROR: main() - source: %s - page: %s - %s" % (source, page, err)
+            continue
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
         saved = medboardscraper.write(results[0])
         print "Written page %s to %s" % (page, saved)
