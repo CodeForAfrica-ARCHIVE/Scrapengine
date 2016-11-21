@@ -2,7 +2,9 @@
 periodically pull the Kenya medical practitioners' database
 
 Cron entry:
-    @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
+    @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register-doctors && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
+    @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register-foreign_doctors && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
+    @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register-clinical_officers && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
 """
 import uuid, csv
 import os, dataset, requests
@@ -11,14 +13,19 @@ from urllib import quote
 from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS
 
 API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
-#API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}&_apikey={apikey}"
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
 SOURCE = dict(
         doctors=SCRAPERS["medicalboard"]["doctors"],
         foreign_doctors=SCRAPERS["medicalboard"]["foreign_doctors"],
         clinical_officers=SCRAPERS["medicalboard"]["clinical_officers"]
         )
-PAGES = 276 # Get this from the site
+
+# Get this from the site
+PAGES = dict(
+        doctors=276,
+        foreign_doctors=49,
+        clinical_officers=410
+        )
 TIMEOUT = 15 # Request timeout in seconds
 PERSIST = False
 OUTPUT_FILE_PREFIX = "starhealth_register"
@@ -110,7 +117,7 @@ class MedicalBoardScraper(object):
             return all_entries, skip_count
         except Exception, err:
             print "ERROR: Failed to scrape data from page %s  -- %s" % (page, err)
-            raise err
+            continue
 
     def write(self, results=[]):
         outputfile = "%s/%s-%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
@@ -136,7 +143,7 @@ def main(source):
     run_id = str(uuid.uuid4())
     medboardscraper = MedicalBoardScraper(run_id, source)
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
-    for page in range(0, PAGES+1):
+    for page in range(0, PAGES[source]+1):
         print "scraping page %s" % str(page)
         results = medboardscraper.scrape_page(str(page))
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
