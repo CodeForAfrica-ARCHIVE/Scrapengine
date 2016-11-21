@@ -6,11 +6,12 @@ Cron entry:
     @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register-foreign_doctors && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
     @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register-clinical_officers && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
 """
-import uuid, csv
+import uuid, csv, boto3
 import os, dataset, requests
 from datetime import datetime
 from urllib import quote
-from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS
+from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS, CLOUDSEARCH
+from Scrapengine import index_template
 
 API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
@@ -38,6 +39,7 @@ class MedicalBoardScraper(object):
         self._id = run_id
         self.source = source
         self.source_url = SOURCE[source]
+        self.cloudsearch = boto3.client("cloudsearchdomain", **CLOUDSEARCH)
         self.fields = dict(
                 doctors=dict(
                     name="name_value",
@@ -130,6 +132,31 @@ class MedicalBoardScraper(object):
         csvfile.close()
         return outputfile
 
+    def index_for_search(self, payload):
+        try:
+            for item in payload:
+                item["id"] = item["registration_number"].strip().replace(" ", "")
+                item["type"] = self.source
+                payload_index = index_template.template % (
+                        item.get("id", ""),
+                        item.get("address", ""),
+                        item.get("facility", ""),
+                        item.get("name", ""),
+                        item.get("practice_type", ""),
+                        item.get("qualification", ""),
+                        item.get("registration_date", ""),
+                        item.get("registration_number", ""),
+                        item.get("specialty", ""),
+                        item.get("sub_specialty", ""),
+                        item.get("type", "")
+                        )
+                resp = self.cloudsearch.upload_documents(
+                        documents=payload_index, contentType="application/json"
+                        )
+                print "DEBUG - index_for_search() - %s - %s" % (item["id"], resp.get("status"))
+        except Exception, err:
+            print "ERROR - index_for_search() - %s - %s" % (payload, err)
+
 
 def _encode(_unicode):
     return _unicode.encode('utf-8')
@@ -152,6 +179,7 @@ def main(source):
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
         saved = medboardscraper.write(results[0])
         print "Written page %s to %s" % (page, saved)
+        indexed = medboardscraper.index_for_search(results[0])
     print "[%s]: STOP RUN ID: %s" % (datetime.now(), run_id)
 
 
