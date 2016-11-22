@@ -153,7 +153,7 @@ class MedicalBoardScraper(object):
                 resp = self.cloudsearch.upload_documents(
                         documents=payload_index, contentType="application/json"
                         )
-                print "DEBUG - index_for_search() - %s - %s" % (item["id"], resp.get("status"))
+                print "DEBUG - index_for_search() - %s - %s" % (item, resp.get("status"))
         except Exception, err:
             print "ERROR - index_for_search() - %s - %s" % (payload, err)
 

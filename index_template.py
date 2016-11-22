@@ -11,7 +11,8 @@ template = """
       "registration_date": "%s",
       "registration_number": "%s",
       "specialty": "%s",
-      "sub_specialty": "%s"
+      "sub_specialty": "%s",
+      "type": "%s"
   }
  }
 ]
