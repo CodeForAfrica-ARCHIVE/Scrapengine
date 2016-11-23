@@ -33,14 +33,14 @@ def index(row):
             row[5],
             row[1],
             row[4],
-            str(row[3]).encode('utf-8'),
-            row[2]
+            unicode(row[3], 'utf-8'),
+            unicode(row[2], 'utf-8')
             )
     resp = cl.upload_documents(
             documents=doc,
             contentType="application/json"
             )
-    print "%s - %s - %s" % (row[0], row[3], resp.get("status"))
+    print "%s - %s - %s" % (row[0], unicode(row[3], 'utf-8'), resp.get("status"))
 
 if __name__ == "__main__":
     loop()
