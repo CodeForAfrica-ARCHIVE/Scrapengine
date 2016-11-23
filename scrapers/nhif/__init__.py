@@ -33,7 +33,7 @@ def index(row):
             row[5],
             row[1],
             row[4],
-            row[3],
+            str(row[3]).encode('utf-8'),
             row[2]
             )
     resp = cl.upload_documents(
