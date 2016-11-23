@@ -1,6 +1,7 @@
 import csv, boto3, os
 CLOUDSEARCH = os.getenv("NHIF_SEARCH_CREDS")
 cl = boto3.client("cloudsearchdomain", **eval(CLOUDSEARCH))
+file_location = "scrapers/nhif/nhif.csv"
 print "cloud search client initiated - %s" % cl
 
 nhif_template = """
@@ -19,8 +20,8 @@ nhif_template = """
 """
 
 
-def loop():
-    with open('nhif.csv', 'rb') as csvfile:
+def main(file_location=file_location):
+    with open(file_location, 'rb') as csvfile:
         filereader = csv.reader(csvfile)
         for row in filereader:
             index(row)
@@ -43,4 +44,4 @@ def index(row):
     print "%s - %s - %s" % (row[0], unicode(row[3], 'utf-8'), resp.get("status"))
 
 if __name__ == "__main__":
-    loop()
+    main()
