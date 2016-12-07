@@ -19,6 +19,9 @@ SCRAPERS = dict(
             "doctors": "http://medicalboard.co.ke/online-services/retention/?currpage=%s",
             "foreign_doctors": "http://medicalboard.co.ke/online-services/foreign-doctors-license-register/?currpage=%s",
             "clinical_officers": "http://clinicalofficerscouncil.org/online-services/retention/?currpage=%s"
+            },
+        sen_companies={
+            "registrar": "http://creationdentreprise.sn/rechercher-une-societe?field_rc_societe_value=&field_ninea_societe_value=&denomination=&field_localite_nid=All&field_siege_societe_value=&field_forme_juriduqe_nid=All&field_secteur_nid=All&field_date_crea_societe_value=&page=%s"
             }
         )
 
