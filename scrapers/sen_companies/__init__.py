@@ -12,8 +12,7 @@ from Scrapengine import index_template
 API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
 
-# Get this from the site
-PAGES = 1217
+PAGES = 1217  # Get this from the site
 TIMEOUT = 15 # Request timeout in seconds
 PERSIST = False
 OUTPUT_FILE_PREFIX = "sen-companies-"
@@ -28,8 +27,8 @@ class CompaniesRegisterScraper(object):
         #self.cloudsearch = boto3.client("cloudsearchdomain", **CLOUDSEARCH)
         self.fields = dict(
                 name="dnomination_link/_text",
-                creation_date="datecration_value",
                 head_office="sigesocial_value",
+                creation_date="datecration_value",
                 link="dnomination_link",
                 )
 
@@ -66,12 +65,12 @@ class CompaniesRegisterScraper(object):
             print "ERROR: Failed to scrape data from page %s  -- %s" % (page, err)
 
     def write(self, results=[]):
-        outputfile = "%s/%s-%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
+        outputfile = "%s/%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self._id)
         with open(outputfile, 'a') as csvfile:
             outputwriter = csv.writer(csvfile, delimiter=",")
             for result in results:
-                attrs = [self.source]
-                for attr in self.fields[self.source]:
+                attrs = []
+                for attr in self.fields:
                     attrs.append(_encode(result[attr]))
                 outputwriter.writerow(attrs)
         csvfile.close()
@@ -122,9 +121,9 @@ def main():
             print "ERROR: main() - source: %s - page: %s - %s" % (source, page, err)
             continue
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
-        #saved = medboardscraper.write(results[0])
-        #print "Written page %s to %s" % (page, saved)
-        #indexed = medboardscraper.index_for_search(results[0])
+        saved = companyscraper.write(results[0])
+        print "Written page %s to %s" % (page, saved)
+        #indexed = companyscraper.index_for_search(results[0])
     print "[%s]: STOP RUN ID: %s" % (datetime.now(), run_id)
 
 
