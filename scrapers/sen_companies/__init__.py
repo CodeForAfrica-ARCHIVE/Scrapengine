@@ -1,5 +1,5 @@
 """
-periodically pull the Kenya medical practitioners' database
+periodically pull the Senegal company registry
 
 """
 import uuid, csv, boto3
@@ -13,6 +13,7 @@ API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
 
 PAGES = 1217  # Get this from the site
+#PAGES = 3
 TIMEOUT = 15 # Request timeout in seconds
 PERSIST = False
 OUTPUT_FILE_PREFIX = "sen-companies-"
@@ -52,9 +53,11 @@ class CompaniesRegisterScraper(object):
             for result in results:
                 print "res - %s" % result
                 try:
-                    company_payload = {}
+                    company_payload = dict(id_=uuid.uuid4())
                     for attr in self.fields:
                         company_payload[attr] = result.get(self.fields[attr], "None")
+
+                    company_payload["attrs"] = self.scrape_company_page(result.get(self.fields.get("link")))
                     all_entries.append(company_payload)
                 except Exception, err:
                     skip_count += 1
@@ -64,12 +67,33 @@ class CompaniesRegisterScraper(object):
         except Exception, err:
             print "ERROR: Failed to scrape data from page %s  -- %s" % (page, err)
 
+    def scrape_company_page(self, url):
+        """
+        http://creationdentreprise.sn/babel-international-group-sarl-big-sarl
+        """
+        try:
+            assert url
+            args = dict(
+                    url=url,
+                    apikey=self.apikey
+                    )
+            print "GET company details - %s" % url
+            response = requests.get(self.api.format(**args), timeout=TIMEOUT)
+            response.raise_for_status()
+            resp = response.json().get("tables", [])[0].get("results")
+            print "GET company details - %s - resp - %s" % (url, resp)
+            return True
+
+        except Exception, err:
+            print "ERROR: get_company_page() - %s -- %s" % (err, url)
+            return False
+
     def write(self, results=[]):
         outputfile = "%s/%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self._id)
         with open(outputfile, 'a') as csvfile:
             outputwriter = csv.writer(csvfile, delimiter=",")
             for result in results:
-                attrs = []
+                attrs = [result.get("id_"), result.get("attrs")]
                 for attr in self.fields:
                     attrs.append(_encode(result[attr]))
                 outputwriter.writerow(attrs)
