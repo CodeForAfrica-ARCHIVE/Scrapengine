@@ -163,13 +163,13 @@ def _encode(_unicode):
     return _unicode.encode('utf-8')
 
 def get_total_page_numbers(url):
-	r = requests.get(url)
-	soup = BeautifulSoup(r.text)
-	row = soup.find("div", {"id": "tnt_pagination"}).getText()
-	start = row.index("Viewing 1 of ") + len("Viewing 1 of")
-	end = row.index("pages.")
-
-	return int(row[start:end].strip()) 
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text)
+    row = soup.find("div", {"id": "tnt_pagination"}).getText()
+    start_text = "Viewing 1 of "
+    start = row.index(start_text) + len(start_text)
+    end = row.index("pages.")
+    return int(row[start:end].strip())
 
 def main(source):
     """
