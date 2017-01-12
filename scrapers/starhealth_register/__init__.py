@@ -12,6 +12,7 @@ from datetime import datetime
 from urllib import quote
 from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS, CLOUDSEARCH
 from Scrapengine import index_template
+from BeautifulSoup import BeautifulSoup
 
 API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
@@ -23,9 +24,9 @@ SOURCE = dict(
 
 # Get this from the site
 PAGES = dict(
-        doctors=276,
-        foreign_doctors=49,
-        clinical_officers=410
+        doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["doctors"]),
+        foreign_doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["foreign_doctors"]),
+        clinical_officers=get_total_page_numbers(SCRAPERS["medicalboard"]["clinical_officers"])
         )
 TIMEOUT = 15 # Request timeout in seconds
 PERSIST = False
@@ -161,6 +162,14 @@ class MedicalBoardScraper(object):
 def _encode(_unicode):
     return _unicode.encode('utf-8')
 
+def get_total_page_numbers(url):
+	r = requests.get(url)
+	soup = BeautifulSoup(r.text)
+	row = soup.find("div", {"id": "tnt_pagination"}).getText()
+	start = row.index("Viewing 1 of ") + len("Viewing 1 of")
+	end = row.index("pages.")
+
+	return int(row[start:end].strip()) 
 
 def main(source):
     """
