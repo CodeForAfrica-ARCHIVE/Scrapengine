@@ -27,11 +27,12 @@ OUTPUT_FILE_PREFIX = "starhealth_register"
 
 def get_total_page_numbers(url, default_pages):
     try:
-        r = requests.get(url)
+        r = requests.get(url % ('1')) # page one
         soup = BeautifulSoup(r.text)
         row = soup.find("div", {"id": "tnt_pagination"}).getText()
         start_text = "Viewing 1 of "
-        start = row.index(start_text) + len(start_text)
+        i = row.index(start_text)
+        start = i + len(start_text)
         end = row.index("pages.")
         return int(row[start:end].strip())
     except Exception, err:
