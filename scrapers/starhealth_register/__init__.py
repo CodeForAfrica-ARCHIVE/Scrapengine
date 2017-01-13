@@ -21,6 +21,22 @@ SOURCE = dict(
         foreign_doctors=SCRAPERS["medicalboard"]["foreign_doctors"],
         clinical_officers=SCRAPERS["medicalboard"]["clinical_officers"]
         )
+TIMEOUT = 15 # Request timeout in seconds
+PERSIST = False
+OUTPUT_FILE_PREFIX = "starhealth_register"
+
+def get_total_page_numbers(url, default_pages):
+    try:
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text)
+        row = soup.find("div", {"id": "tnt_pagination"}).getText()
+        start_text = "Viewing 1 of "
+        start = row.index(start_text) + len(start_text)
+        end = row.index("pages.")
+        return int(row[start:end].strip())
+    except Exception, err:
+        print "ERROR: get_total_page_numbers() - url: %s - err: %s" % (url, err)
+        return default_pages
 
 # Get this from the site
 PAGES = dict(
@@ -28,10 +44,6 @@ PAGES = dict(
         foreign_doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["foreign_doctors"], 51),
         clinical_officers=get_total_page_numbers(SCRAPERS["medicalboard"]["clinical_officers"], 377)
         )
-TIMEOUT = 15 # Request timeout in seconds
-PERSIST = False
-OUTPUT_FILE_PREFIX = "starhealth_register"
-
 
 class MedicalBoardScraper(object):
     def __init__(self, run_id, source):
@@ -161,19 +173,6 @@ class MedicalBoardScraper(object):
 
 def _encode(_unicode):
     return _unicode.encode('utf-8')
-
-def get_total_page_numbers(url, default_pages):
-    try:
-        r = requests.get(url)
-        soup = BeautifulSoup(r.text)
-        row = soup.find("div", {"id": "tnt_pagination"}).getText()
-        start_text = "Viewing 1 of "
-        start = row.index(start_text) + len(start_text)
-        end = row.index("pages.")
-        return int(row[start:end].strip())
-    except Exception, err:
-        print "ERROR: get_total_page_numbers() - url: %s - err: %s" % (url, err)
-        return default_pages
 
 def main(source):
     """
