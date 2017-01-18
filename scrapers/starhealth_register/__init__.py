@@ -12,6 +12,7 @@ from datetime import datetime
 from urllib import quote
 from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS, CLOUDSEARCH
 from Scrapengine import index_template
+from BeautifulSoup import BeautifulSoup
 
 API_KEY = os.getenv("IMPORTIO_API_KEY", "xx-yy-zz")
 API = "https://api.import.io/store/connector/_magic?url={url}&format=JSON&js=false&_apikey={apikey}"
@@ -20,17 +21,30 @@ SOURCE = dict(
         foreign_doctors=SCRAPERS["medicalboard"]["foreign_doctors"],
         clinical_officers=SCRAPERS["medicalboard"]["clinical_officers"]
         )
-
-# Get this from the site
-PAGES = dict(
-        doctors=276,
-        foreign_doctors=49,
-        clinical_officers=410
-        )
 TIMEOUT = 15 # Request timeout in seconds
 PERSIST = False
 OUTPUT_FILE_PREFIX = "starhealth_register"
 
+def get_total_page_numbers(url, default_pages):
+    try:
+        r = requests.get(url % ('1')) # page one
+        soup = BeautifulSoup(r.text)
+        row = soup.find("div", {"id": "tnt_pagination"}).getText()
+        start_text = "Viewing 1 of "
+        i = row.index(start_text)
+        start = i + len(start_text)
+        end = row.index("pages.")
+        return int(row[start:end].strip())
+    except Exception, err:
+        print "ERROR: get_total_page_numbers() - url: %s - err: %s" % (url, err)
+        return default_pages
+
+# Get this from the site
+PAGES = dict(
+        doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["doctors"], 394),
+        foreign_doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["foreign_doctors"], 51),
+        clinical_officers=get_total_page_numbers(SCRAPERS["medicalboard"]["clinical_officers"], 377)
+        )
 
 class MedicalBoardScraper(object):
     def __init__(self, run_id, source):
@@ -160,7 +174,6 @@ class MedicalBoardScraper(object):
 
 def _encode(_unicode):
     return _unicode.encode('utf-8')
-
 
 def main(source):
     """
