@@ -44,4 +44,4 @@ def index(row):
     print "%s - %s - %s" % (row[0], unicode(row[3], 'utf-8'), resp.get("status"))
 
 if __name__ == "__main__":
-    main()
+    pass
