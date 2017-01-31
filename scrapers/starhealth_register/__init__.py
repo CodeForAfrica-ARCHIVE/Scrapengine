@@ -148,10 +148,8 @@ class MedicalBoardScraper(object):
         return outputfile
 
     def index_for_search(self, payload):
-        DATA = []
         try:
             for i, item in enumerate(payload):
-                print i
                 item["id"] = item["registration_number"].strip().replace(" ", "")
                 item["type"] = self.source
                 payload_index = index_template.template % (
@@ -167,16 +165,15 @@ class MedicalBoardScraper(object):
                         item.get("sub_specialty", ""),
                         item.get("type", "")
                         )
-                DATA.append({"type": "add", "id":item["id"], "fields": item})
-            if self.source == 'clinical_officers':
-                resp = self.cloudsearch_cos.upload_documents(
-                    documents=DATA, contentType="application/json"
+                if self.source == 'clinical_officers':
+                    resp = self.cloudsearch_cos.upload_documents(
+                        documents=payload_index, contentType="application/json"
+                        )
+                else:
+                    resp = self.cloudsearch_docs.upload_documents(
+                        documents=payload_index, contentType="application/json"
                     )
-            else:
-                resp = self.cloudsearch_docs.upload_documents(
-                    documents=DATA, contentType="application/json"
-                )
-            #print "DEBUG - index_for_search() - %s - %s" % (item, resp.get("status"))
+                print "DEBUG - index_for_search() - %s - %s" % (item, resp.get("status"))
         except Exception, err:
             print "ERROR - index_for_search() - %s - %s" % (payload, err)
 
@@ -192,7 +189,7 @@ def main(source):
     medboardscraper = MedicalBoardScraper(run_id, source)
     doc_results = []
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
-    for page in range(0, 1): #PAGES[source]+1):
+    for page in range(0, 1):#PAGES[source]+1):
         print "scraping page %s" % str(page)
         try:
             results = medboardscraper.scrape_page(str(page))

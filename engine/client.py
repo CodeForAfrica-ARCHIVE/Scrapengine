@@ -6,7 +6,7 @@ import csv
 import time
 from Scrapengine.scrapers import (
         rss, article, lawyers_ke, nurses_ke, starhealth_news, starhealth_register,
-        ke_gazette, na_gazette, sen_companies)
+        ke_gazette, na_gazette, nhif, sen_companies)
 from Scrapengine.configs import SCRAPERS
 
 
