@@ -10,7 +10,7 @@ import uuid, csv, boto3
 import os, dataset, requests
 from datetime import datetime
 from urllib import quote
-from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS, CLOUDSEARCH
+from Scrapengine.configs import DATABASE, ARCHIVE, SCRAPERS, CLOUDSEARCH_DOCS, CLOUDSEARCH_COS
 from Scrapengine import index_template
 from BeautifulSoup import BeautifulSoup
 
@@ -53,7 +53,8 @@ class MedicalBoardScraper(object):
         self._id = run_id
         self.source = source
         self.source_url = SOURCE[source]
-        self.cloudsearch = boto3.client("cloudsearchdomain", **CLOUDSEARCH)
+        self.cloudsearch_docs = boto3.client("cloudsearchdomain", **CLOUDSEARCH_DOCS)
+        self.cloudsearch_cos = boto3.client("cloudsearchdomain", **CLOUDSEARCH_COS)
         self.fields = dict(
                 doctors=dict(
                     name="name_value",
@@ -100,7 +101,7 @@ class MedicalBoardScraper(object):
                     url=quote(self.source_url % page),
                     apikey=self.apikey
                     )
-            print "GETting page: %s" % args["url"]
+            print "Getting page: %s" % args["url"]
             start = datetime.now()
             response = requests.get(self.api.format(**args), timeout=TIMEOUT)
             print "timer - http - %s seconds to GET %s" % ((datetime.now() - start).seconds, args["url"])
@@ -147,8 +148,10 @@ class MedicalBoardScraper(object):
         return outputfile
 
     def index_for_search(self, payload):
+        DATA = []
         try:
-            for item in payload:
+            for i, item in enumerate(payload):
+                print i
                 item["id"] = item["registration_number"].strip().replace(" ", "")
                 item["type"] = self.source
                 payload_index = index_template.template % (
@@ -164,10 +167,16 @@ class MedicalBoardScraper(object):
                         item.get("sub_specialty", ""),
                         item.get("type", "")
                         )
-                resp = self.cloudsearch.upload_documents(
-                        documents=payload_index, contentType="application/json"
-                        )
-                print "DEBUG - index_for_search() - %s - %s" % (item, resp.get("status"))
+                DATA.append({"type": "add", "id":item["id"], "fields": item})
+            if self.source == 'clinical_officers':
+                resp = self.cloudsearch_cos.upload_documents(
+                    documents=DATA, contentType="application/json"
+                    )
+            else:
+                resp = self.cloudsearch_docs.upload_documents(
+                    documents=DATA, contentType="application/json"
+                )
+            #print "DEBUG - index_for_search() - %s - %s" % (item, resp.get("status"))
         except Exception, err:
             print "ERROR - index_for_search() - %s - %s" % (payload, err)
 
@@ -181,8 +190,9 @@ def main(source):
     """
     run_id = str(uuid.uuid4())
     medboardscraper = MedicalBoardScraper(run_id, source)
+    doc_results = []
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
-    for page in range(0, PAGES[source]+1):
+    for page in range(0, 1): #PAGES[source]+1):
         print "scraping page %s" % str(page)
         try:
             results = medboardscraper.scrape_page(str(page))
@@ -192,7 +202,9 @@ def main(source):
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
         saved = medboardscraper.write(results[0])
         print "Written page %s to %s" % (page, saved)
-        indexed = medboardscraper.index_for_search(results[0])
+        doc_results.extend(results[0])
+
+    indexed = medboardscraper.index_for_search(doc_results)
     print "[%s]: STOP RUN ID: %s" % (datetime.now(), run_id)
 
 
