@@ -189,7 +189,7 @@ def main(source):
     medboardscraper = MedicalBoardScraper(run_id, source)
     doc_results = []
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
-    for page in range(0, 1):#PAGES[source]+1):
+    for page in range(0, PAGES[source]+1):
         print "scraping page %s" % str(page)
         try:
             results = medboardscraper.scrape_page(str(page))
