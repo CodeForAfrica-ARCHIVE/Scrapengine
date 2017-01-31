@@ -36,9 +36,24 @@ DATABASE = dict(
         table='SCRAPENGINE'
         )
 
-
+#Doctors domain
 CLOUDSEARCH=dict(
         endpoint_url="https://doc-starhealth-register-ofeurvl5vjhloserbvjnzhypmy.eu-west-1.cloudsearch.amazonaws.com",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+        region_name=os.getenv("AWS_REGION")
+        )
+
+#Doctors domain
+CLOUDSEARCH_DOCS=dict(
+        endpoint_url="https://doc-doctor-register-ke-ec4lclx2pcfn76nt26xreyxmee.eu-west-1.cloudsearch.amazonaws.com",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+        region_name=os.getenv("AWS_REGION")
+        )
+#Clinical officers domain
+CLOUDSEARCH_COS=dict(
+        endpoint_url="https://doc-clinical-officer-register-ke-ai5gut3aumxdpynvchhvgr4yfe.eu-west-1.cloudsearch.amazonaws.com",
         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
         aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
         region_name=os.getenv("AWS_REGION")
