@@ -41,7 +41,7 @@ def get_total_page_numbers(url, default_pages):
 
 # Get this from the site
 PAGES = dict(
-        doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["doctors"], 394),
+        doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["doctors"], 409),
         foreign_doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["foreign_doctors"], 51),
         clinical_officers=get_total_page_numbers(SCRAPERS["medicalboard"]["clinical_officers"], 377)
         )
@@ -61,7 +61,6 @@ class MedicalBoardScraper(object):
                     registration_number="regno_value",
                     qualification="qualifications_value",
                     address="address_value",
-
                     registration_date="regdate_date/_source",
                     specialty="specialty_value",
                     sub_specialty="sub_value"
@@ -71,7 +70,6 @@ class MedicalBoardScraper(object):
                     registration_number="licence_number/_source",
                     qualification="qualifications_value",
                     address="address_value",
-
                     facility="facility_value",
                     practice_type="practicetype_value",
                     ),
@@ -80,7 +78,6 @@ class MedicalBoardScraper(object):
                     registration_number="regnolicence_value",
                     qualification="qualifications_label",
                     address="address_value",
-
                     registration_date="regdate_value",
                     )
                 )
@@ -94,7 +91,7 @@ class MedicalBoardScraper(object):
         dbtable = self.db[DATABASE['table']]
         dbresp = dbtable.insert(json_data)
         print "db said %s for %s" % (str(dbresp), json_data)
-    
+
     def scrape_page(self, page):
         try:
             args = dict(
@@ -117,7 +114,7 @@ class MedicalBoardScraper(object):
                     for attr in self.fields[self.source]:
                         doctor_payload[attr] = result.get(self.fields[self.source][attr], "None")
                         doctor_payload["type"] = self.source
-                    
+
                     start = datetime.now()
 
                     if PERSIST:
@@ -135,26 +132,36 @@ class MedicalBoardScraper(object):
         except Exception, err:
             print "ERROR: Failed to scrape data from page %s  -- %s" % (page, err)
 
-    def write(self, results=[]):
-        outputfile = "%s/%s-%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
-        with open(outputfile, 'a') as csvfile:
-            outputwriter = csv.writer(csvfile, delimiter=",")
-            for result in results:
-                attrs = [self.source]
-                for attr in self.fields[self.source]:
-                    attrs.append(_encode(result[attr]))
-                outputwriter.writerow(attrs)
-        csvfile.close()
-        return outputfile
+    def write_to_json(self, results=[]):
+        """
+        This function saves the data in a template ready for bulk addition or bulk deletion in json files.
+        :param results:
+        :return: a tuple of the file names
+        """
+        outputfile = "%s/%s-%s-%s-add.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id) #Serves as a record of items last uploaded
+        deletefile = "%s/%s-%s-%s-delete.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
+        with open(outputfile, 'a') as f, open(deletefile, 'a') as d:
+            try:
+                for i, item in enumerate(results):
+                    item["id"] = item["registration_number"].strip().replace(" ", "")
+                    item["type"] = self.source
+                    deletion_index = item.get("id", "").encode('utf-8') + '\n'
+                    d.write(deletion_index) #Save a list of
+                    f.write(str(item))
+
+            except Exception, err:
+                print "ERROR - writing to json() - %s- %s - %s" % (outputfile, deletefile, err)
+        return outputfile, deletefile
 
     def index_for_search(self, payload):
         try:
+            payload_index = ''
             for i, item in enumerate(payload):
                 item["id"] = item["registration_number"].strip().replace(" ", "")
                 item["type"] = self.source
-                payload_index = index_template.template % (
+                payload_index += index_template.template % (
                         item.get("id", ""),
-                        item.get("address", ""),
+                        item.get("address", "").replace("\"","'"),
                         item.get("facility", ""),
                         item.get("name", ""),
                         item.get("practice_type", ""),
@@ -164,19 +171,50 @@ class MedicalBoardScraper(object):
                         item.get("specialty", ""),
                         item.get("sub_specialty", ""),
                         item.get("type", "")
-                        )
+                    )
+                if i < (len(payload) - 1): payload_index += ', '
+            payload_index = '[%s]' % payload_index
+            if self.source == 'clinical_officers':
+                resp = self.cloudsearch_cos.upload_documents(
+                    documents=payload_index, contentType="application/json"
+                    )
+            else:
+                resp = self.cloudsearch_docs.upload_documents(
+                    documents=payload_index, contentType="application/json"
+                )
+            print "DEBUG - index_for_search() - %s - %s" % (len(payload), resp.get("status"))
+        except Exception, err:
+            print "ERROR - index_for_search() - %s - %s" % (len(payload), err)
+
+    def delete_records(self, file):
+        with open(file, 'r') as f:
+            rows = f.readlines()
+            batches = list(self.chunkify(rows, 30))
+            for batch in batches:
+                no_of_items = len(batch)
+                payload_index = ''
+                for i, row in enumerate(batch):
+                    row = row.replace('/n','').strip()
+                    payload_index += index_template.delete_template % ( row )
+                    if i < (len(batch) - 1): payload_index += ', '
+                payload_index = '[%s]' % payload_index
                 if self.source == 'clinical_officers':
                     resp = self.cloudsearch_cos.upload_documents(
                         documents=payload_index, contentType="application/json"
-                        )
+                    )
                 else:
                     resp = self.cloudsearch_docs.upload_documents(
                         documents=payload_index, contentType="application/json"
                     )
-                print "DEBUG - index_for_search() - %s - %s" % (item, resp.get("status"))
-        except Exception, err:
-            print "ERROR - index_for_search() - %s - %s" % (payload, err)
 
+                print "DEBUG - delete_records() - %s" % (resp.get("status"))
+        os.remove(file)
+        os.remove(file.replace('delete.json', 'add.json')) #To avoid loss of space
+        return no_of_items
+
+    def chunkify(self, l, n):
+        n = max(1, n)
+        return (l[i:i + n] for i in xrange(0, len(l), n))
 
 def _encode(_unicode):
     return _unicode.encode('utf-8')
@@ -187,6 +225,14 @@ def main(source):
     """
     run_id = str(uuid.uuid4())
     medboardscraper = MedicalBoardScraper(run_id, source)
+
+    #Flush the repository off of old data if the delete.json file exists
+    for file in os.listdir(ARCHIVE):
+        if file.endswith("delete.json"):
+            no_of_items_flushed = medboardscraper.delete_records(ARCHIVE + '/' + file)
+            print "[%s]: FLUSHED CLOUDSEARCH : %s" % (datetime.now(), no_of_items_flushed)
+            break
+
     doc_results = []
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
     for page in range(0, PAGES[source]+1):
@@ -197,11 +243,12 @@ def main(source):
             print "ERROR: main() - source: %s - page: %s - %s" % (source, page, err)
             continue
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
-        saved = medboardscraper.write(results[0])
-        print "Written page %s to %s" % (page, saved)
-        doc_results.extend(results[0])
 
-    indexed = medboardscraper.index_for_search(doc_results)
+        files = medboardscraper.write_to_json(results[0])
+        print "Written page %s to %s" % (page, files)
+
+        doc_results.extend(results[0])
+        medboardscraper.index_for_search(doc_results)
     print "[%s]: STOP RUN ID: %s" % (datetime.now(), run_id)
 
 

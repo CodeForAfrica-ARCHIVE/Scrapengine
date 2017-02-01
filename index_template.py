@@ -1,5 +1,4 @@
 template = """
-[
  {"type": "add",
   "id":   "%s",
   "fields": {
@@ -15,5 +14,6 @@ template = """
       "type": "%s"
   }
  }
-]
 """
+
+delete_template = '{"type": "delete","id":"%s"}'
