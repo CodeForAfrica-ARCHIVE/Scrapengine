@@ -134,25 +134,13 @@ class MedicalBoardScraper(object):
         except Exception, err:
             print "ERROR: Failed to scrape data from page %s  -- %s" % (page, err)
 
-    def write(self, results=[]):
-        outputfile = "%s/%s-%s-%s.csv" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
-        with open(outputfile, 'a') as csvfile:
-            outputwriter = csv.writer(csvfile, delimiter=",")
-            for result in results:
-                attrs = [self.source]
-                for attr in self.fields[self.source]:
-                    attrs.append(_encode(result[attr]))
-                outputwriter.writerow(attrs)
-        csvfile.close()
-        return outputfile
-
     def write_to_json(self, results=[]):
         """
         This function saves the data in a template ready for bulk addition or bulk deletion in json files.
         :param results:
         :return: a tuple of the file names
         """
-        outputfile = "%s/%s-%s-%s-add.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
+        outputfile = "%s/%s-%s-%s-add.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id) #Serves as a record of items last uploaded
         deletefile = "%s/%s-%s-%s-delete.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
         with open(outputfile, 'a') as f, open(deletefile, 'a') as d:
             try:
@@ -160,7 +148,7 @@ class MedicalBoardScraper(object):
                     item["id"] = item["registration_number"].strip().replace(" ", "")
                     item["type"] = self.source
                     deletion_index = item.get("id", "").encode('utf-8') + '\n'
-                    d.write(deletion_index) #Save a list of 
+                    d.write(deletion_index) #Save a list of
                     f.write(str(item))
 
             except Exception, err:
@@ -257,12 +245,12 @@ def main(source):
             print "ERROR: main() - source: %s - page: %s - %s" % (source, page, err)
             continue
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
-        #saved = medboardscraper.write(results[0])
+
         files = medboardscraper.write_to_json(results[0])
         print "Written page %s to %s" % (page, files)
-        doc_results.extend(results[0])
 
-        indexed = medboardscraper.index_for_search(doc_results)
+        doc_results.extend(results[0])
+        medboardscraper.index_for_search(doc_results)
     print "[%s]: STOP RUN ID: %s" % (datetime.now(), run_id)
 
 
