@@ -235,7 +235,7 @@ def main(source):
 
     doc_results = []
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
-    for page in range(0, PAGES[source]+1):
+    for page in range(0, 2):#PAGES[source]+1):
         print "scraping page %s" % str(page)
         try:
             results = medboardscraper.scrape_page(str(page))
@@ -244,11 +244,11 @@ def main(source):
             continue
         print "Scraped %s entries from page %s | Skipped %s entries" % (len(results[0]), page, results[1])
 
-        files = medboardscraper.write_to_json(results[0])
-        print "Written page %s to %s" % (page, files)
-
         doc_results.extend(results[0])
         medboardscraper.index_for_search(doc_results)
+
+    files = medboardscraper.write_to_json(doc_results)
+    print "Written page %s to %s" % (page, files)
     print "[%s]: STOP RUN ID: %s" % (datetime.now(), run_id)
 
 
