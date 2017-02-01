@@ -6,7 +6,7 @@ Cron entry:
     @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register-foreign_doctors && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
     @weekly source /alephdata/srv/env_scrapengine/bin/activate && cd /alephdata/srv/Scrapengine && make scrape scraper=starhealth-register-clinical_officers && curl -fsS --retry 3 https://hchk.io/<ID> > /dev/null
 """
-import uuid, csv, boto3, json, ast
+import uuid, csv, boto3
 import os, dataset, requests
 from datetime import datetime
 from urllib import quote
@@ -41,7 +41,7 @@ def get_total_page_numbers(url, default_pages):
 
 # Get this from the site
 PAGES = dict(
-        doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["doctors"], 394),
+        doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["doctors"], 409),
         foreign_doctors=get_total_page_numbers(SCRAPERS["medicalboard"]["foreign_doctors"], 51),
         clinical_officers=get_total_page_numbers(SCRAPERS["medicalboard"]["clinical_officers"], 377)
         )
@@ -61,7 +61,6 @@ class MedicalBoardScraper(object):
                     registration_number="regno_value",
                     qualification="qualifications_value",
                     address="address_value",
-
                     registration_date="regdate_date/_source",
                     specialty="specialty_value",
                     sub_specialty="sub_value"
@@ -71,7 +70,6 @@ class MedicalBoardScraper(object):
                     registration_number="licence_number/_source",
                     qualification="qualifications_value",
                     address="address_value",
-
                     facility="facility_value",
                     practice_type="practicetype_value",
                     ),
@@ -211,7 +209,7 @@ class MedicalBoardScraper(object):
 
                 print "DEBUG - delete_records() - %s" % (resp.get("status"))
         os.remove(file)
-        os.remove(file.replace('delete.json', 'add.json'))
+        os.remove(file.replace('delete.json', 'add.json')) #To avoid loss of space
         return no_of_items
 
     def chunkify(self, l, n):
@@ -237,7 +235,7 @@ def main(source):
 
     doc_results = []
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
-    for page in range(0, 1):#PAGES[source]+1):
+    for page in range(0, PAGES[source]+1):
         print "scraping page %s" % str(page)
         try:
             results = medboardscraper.scrape_page(str(page))
