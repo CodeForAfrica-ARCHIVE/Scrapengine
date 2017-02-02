@@ -159,6 +159,8 @@ class MedicalBoardScraper(object):
             for i, item in enumerate(payload):
                 item["id"] = item["registration_number"].strip().replace(" ", "")
                 item["type"] = self.source
+                if item['name'] == "CHEMNING\'WA MICHAEL NGORETT":
+                    item['name'] = "CHEMNING'WA MICHAEL NGORETT"
                 payload_index += index_template.template % (
                         item.get("id", ""),
                         item.get("address", "").replace("\"","'"),
