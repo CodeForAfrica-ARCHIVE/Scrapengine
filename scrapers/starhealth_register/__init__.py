@@ -138,8 +138,8 @@ class MedicalBoardScraper(object):
         :param results:
         :return: a tuple of the file names
         """
-        outputfile = "%s/%s-%s-%s-add.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id) #Serves as a record of items last uploaded
-        deletefile = "%s/%s-%s-%s-delete.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self.source, self._id)
+        outputfile = "%s/%s-%s-%s-add.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self._id, self.source) #Serves as a record of items last uploaded
+        deletefile = "%s/%s-%s-%s-delete.json" % (ARCHIVE, OUTPUT_FILE_PREFIX, self._id, self.source)
         with open(outputfile, 'a') as f, open(deletefile, 'a') as d:
             try:
                 for i, item in enumerate(results):
@@ -228,7 +228,7 @@ def main(source):
 
     #Flush the repository off of old data if the delete.json file exists
     for file in os.listdir(ARCHIVE):
-        if file.endswith("delete.json"):
+        if file.endswith(source + "-delete.json"):
             no_of_items_flushed = medboardscraper.delete_records(ARCHIVE + '/' + file)
             print "[%s]: FLUSHED CLOUDSEARCH : %s" % (datetime.now(), no_of_items_flushed)
             break
