@@ -162,7 +162,7 @@ class MedicalBoardScraper(object):
                 item = self.custom_corrections(item)
                 payload_index += index_template.template % (
                         item.get("id", ""),
-                        item.get("address", ""),
+                        item.get("address", "").replace("\"","'"),
                         item.get("facility", ""),
                         item.get("name", ""),
                         item.get("practice_type", ""),
