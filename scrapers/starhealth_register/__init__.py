@@ -112,7 +112,7 @@ class MedicalBoardScraper(object):
                 try:
                     doctor_payload = {}
                     for attr in self.fields[self.source]:
-                        doctor_payload[attr] = result.get(self.fields[self.source][attr], "None").strip('\\')
+                        doctor_payload[attr] = result.get(self.fields[self.source][attr], "None").decode("string_escape").replace('\\','')
                         doctor_payload["type"] = self.source
 
                     start = datetime.now()
@@ -159,15 +159,14 @@ class MedicalBoardScraper(object):
             for i, item in enumerate(payload):
                 item["id"] = item["registration_number"].strip().replace(" ", "")
                 item["type"] = self.source
-                if item['name'] == "CHEMNING\'WA MICHAEL NGORETT":
-                    item['name'] = "CHEMNING'WA MICHAEL NGORETT"
+                item = self.custom_corrections(item)
                 payload_index += index_template.template % (
                         item.get("id", ""),
-                        item.get("address", "").replace("\"","'"),
+                        item.get("address", ""),
                         item.get("facility", ""),
                         item.get("name", ""),
                         item.get("practice_type", ""),
-                        item.get("qualification", ""),
+                        item.get("qualification", "").replace("\\", ""),
                         item.get("registration_date", ""),
                         item.get("registration_number", ""),
                         item.get("specialty", ""),
@@ -191,7 +190,7 @@ class MedicalBoardScraper(object):
     def delete_records(self, file):
         with open(file, 'r') as f:
             rows = f.readlines()
-            batches = list(self.chunkify(rows, 30))
+            batches = list(self.chunkify(rows, 100))
             for batch in batches:
                 no_of_items = len(batch)
                 payload_index = ''
@@ -218,6 +217,12 @@ class MedicalBoardScraper(object):
         n = max(1, n)
         return (l[i:i + n] for i in xrange(0, len(l), n))
 
+    def custom_corrections(self, item):
+        #Some problems just won't go away
+        if "MD(LINKOPING" in item.get("qualification"):
+            item["qualification"] = "MD(LINKOPING)02011"
+        return item
+
 def _encode(_unicode):
     return _unicode.encode('utf-8')
 
@@ -237,7 +242,7 @@ def main(source):
 
     doc_results = []
     print "[%s]: START RUN ID: %s" % (datetime.now(), run_id)
-    for page in range(0, PAGES[source]+1):
+    for page in range(26, PAGES[source]+1):
         print "scraping page %s" % str(page)
         try:
             results = medboardscraper.scrape_page(str(page))
@@ -249,8 +254,8 @@ def main(source):
         doc_results.extend(results[0])
         medboardscraper.index_for_search(doc_results)
 
-    files = medboardscraper.write_to_json(doc_results)
-    print "Written page %s to %s" % (page, files)
+        files = medboardscraper.write_to_json(doc_results)
+        print "Written page %s to %s" % (page, files)
     print "[%s]: STOP RUN ID: %s" % (datetime.now(), run_id)
 
 
