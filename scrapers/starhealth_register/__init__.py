@@ -112,7 +112,7 @@ class MedicalBoardScraper(object):
                 try:
                     doctor_payload = {}
                     for attr in self.fields[self.source]:
-                        doctor_payload[attr] = result.get(self.fields[self.source][attr], "None")
+                        doctor_payload[attr] = result.get(self.fields[self.source][attr], "None").strip('\\')
                         doctor_payload["type"] = self.source
 
                     start = datetime.now()
@@ -161,15 +161,15 @@ class MedicalBoardScraper(object):
                 item["type"] = self.source
                 payload_index += index_template.template % (
                         item.get("id", ""),
-                        item.get("address", "").replace("\"","'").strip('\\'),
-                        item.get("facility", "").strip('\\'),
-                        item.get("name", "").strip('\\'),
-                        item.get("practice_type", "").strip('\\'),
-                        item.get("qualification", "").strip('\\'),
-                        item.get("registration_date", "").strip('\\'),
-                        item.get("registration_number", "").strip('\\'),
-                        item.get("specialty", "").strip('\\'),
-                        item.get("sub_specialty", "").strip('\\'),
+                        item.get("address", "").replace("\"","'"),
+                        item.get("facility", ""),
+                        item.get("name", ""),
+                        item.get("practice_type", ""),
+                        item.get("qualification", ""),
+                        item.get("registration_date", ""),
+                        item.get("registration_number", ""),
+                        item.get("specialty", ""),
+                        item.get("sub_specialty", ""),
                         item.get("type", "")
                     )
                 if i < (len(payload) - 1): payload_index += ', '
