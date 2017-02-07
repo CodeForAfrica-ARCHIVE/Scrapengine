@@ -1,5 +1,6 @@
 import requests, json, boto3
 from datetime import datetime
+from Scrapengine import index_template
 from Scrapengine.configs import HEALTH_FACILITIES_CLOUDSEARCH_DOMAIN
 
 TOKEN_URL = 'http://api.kmhfl.health.go.ke/o/token/'
@@ -21,7 +22,7 @@ SEARCH_URL = 'http://api.kmhfl.health.go.ke/api/facilities/material/?page_size=1
 class HealthfacilitiesScraper(object):
     def __init__(self):
         self.access_token = None
-        self.cloudsearch = boto3.client("cloudsearchdomain", HEALTH_FACILITIES_CLOUDSEARCH_DOMAIN)
+        self.cloudsearch = boto3.client("cloudsearchdomain", **HEALTH_FACILITIES_CLOUDSEARCH_DOMAIN)
 
     def get_token(self):
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -43,10 +44,11 @@ class HealthfacilitiesScraper(object):
             print "DEBUG - get_data() - %s - %s" % (len(data['results']), r.reason)
             payload = ''
             for i, record in enumerate(data['results']):
-                payload += self.index_for_cloudsearch(record)
+                payload += self.index_for_cloudsearch(record) + ','
                 #Every 100th entry push to cloudsearch or if we have reached the end push to cloudsearch
                 if i % 100 == 0 or i == (len(data['results']) - 1):
-                    payload = '[%s]' % payload
+                    payload = '[%s]' % payload[:-1] #remove last comma
+                    print i
                     self.push_to_cloud_search(payload)
                     payload = ''
         except Exception, err:
@@ -54,29 +56,9 @@ class HealthfacilitiesScraper(object):
 
 
     def index_for_cloudsearch(self, record):
-        template = """{"type": "add", "id":   "%s",
-            "fields": {
-              "name": "%s",
-              "facility_type_name": "%s",
-              "approved": "%s",
-              "sub_county_name": "%s",
-              "service_names": "%s",
-              "county_name": "%s",
-              "open_public_holidays": "%s",
-              "keph_level_name": "%s",
-              "open_whole_day": "%s",
-              "owner_name": "%s",
-              "constituency_name": "%s",
-              "regulatory_body_name": "%s",
-              "operation_status_name": "%s",
-              "open_late_night": "%s",
-              "open_weekends": "%s",
-              "ward_nam": "%s",
-            }
-        }"""
-        return template  % (
+        return index_template.health_facilities_template  % (
             record['code'],
-            record['name'],
+            record['name'].replace("\"","'"),
             record['facility_type_name'],
             record['service_names'],
             record['sub_county_name'],
@@ -91,7 +73,7 @@ class HealthfacilitiesScraper(object):
             record['operation_status_name'],
             record['open_late_night'],
             record['open_weekends'],
-            record['ward_name'],
+            record['ward_name'].decode("string_escape").replace('\\',''),
         )
 
     def push_to_cloud_search(self, payload):
@@ -105,7 +87,7 @@ class HealthfacilitiesScraper(object):
 
 
 def main():
-    print "[%s]: START RUN: %s" % (datetime.now())
+    print "[%s]: START RUN:" % (datetime.now())
     hfs = HealthfacilitiesScraper()
     hfs.get_token()
     hfs.get_data()
