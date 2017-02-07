@@ -58,3 +58,9 @@ CLOUDSEARCH_COS=dict(
         aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
         region_name=os.getenv("AWS_REGION")
         )
+HEALTH_FACILITIES_CLOUDSEARCH_DOMAIN=dict(
+        endpoint_url="https://doc-health-facilities-ke-65ftd7ksxazyatw5fiv5uyaiqi.eu-west-1.cloudsearch.amazonaws.com",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+        region_name=os.getenv("AWS_REGION")
+        )
